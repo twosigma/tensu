@@ -1,0 +1,15 @@
+certifi==2021.10.8
+cffi==1.15.0
+charset-normalizer==2.0.12
+cryptography==37.0.2
+decorator==5.1.1
+gssapi==1.7.3
+idna==3.3
+krb5==0.3.0
+pycparser==2.21
+pyspnego==0.5.2
+requests==2.27.1
+requests-kerberos==0.14.0
+structlog==21.5.0
+typing_extensions==4.2.0
+urllib3==1.26.9
