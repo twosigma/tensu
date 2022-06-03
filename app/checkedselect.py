@@ -50,7 +50,7 @@ class CheckedSelect(Window):
             )
             + 8  # Because we add ' [X] ' in front of each item, +2 for border, +1 for EOL
         )
-        w = max([w, control_button_min_width])
+        w = max([w, self.self.control_button_min_width])
         y = (int(curses.LINES / 2)) - (int(h / 2))
         x = (int(curses.COLS / 2)) - (int(w / 2))
         return (h, w, y, x)
