@@ -46,7 +46,6 @@ class EventInfoWindow(Window):
         self.next_update_time = datetime.utcnow() + timedelta(seconds=-1)
         self.output_pad_min_row = 0
         self.action_message = ""
-        self.logger.debug("resizeterminalstack", ResizeTerminalStack=ResizeTerminalStack)
 
     def get_dimensions(self) -> Tuple[int, int, int, int]:
         """Return Tuple of h, w, y, x"""
