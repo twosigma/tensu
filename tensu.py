@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from app.display import handle_terminal_resize, EventHeaders, SilencedHeaders, ResizeTerminalStack
 from app.defaults import ViewOptions, InternalDefaults, AuthenticationOptions, Filters
-from app.display import handle_terminal_resize, EventHeaders, SilencedHeaders
 from datetime import datetime, timezone, timedelta
 from app.resource_handler import ResourceHandler
 from app.eventinfowindow import EventInfoWindow
@@ -90,6 +90,7 @@ class Tensu:
         self.resource_handler = ResourceHandler(self.state, self.sensu_go_helper)
         self.resource_handler.set_callable(self.update_view)
         self.resource_handler.set_fetch_status_callable(self.update_fetch_status)
+        ResizeTerminalStack.append(self.make_windows)
 
     def configure_logger(self):
         """Configures the application logger
@@ -767,6 +768,7 @@ class Tensu:
                     stdscr,
                     f"Error!\nCheck {self.debug_log_file}\nYour terminal dimensions may be too small!",
                 ).draw()
+                ResizeTerminalStack = [self.make_windows]
 
 
 if __name__ == "__main__":
