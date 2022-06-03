@@ -36,6 +36,7 @@ class CheckedSelect(Window):
             dim[2],
             dim[3],
             stdscr=stdscr,
+            auto_resize=True
         )
         self.selected_index = 0
         self.delayed_refresh = True
@@ -57,6 +58,8 @@ class CheckedSelect(Window):
 
     def draw_after_resize(self) -> None:
         self.draw()
+        self.draw_items()
+        curses.doupdate()
 
     def draw(self) -> None:
         self.h, self.w, self.y, self.x = self.get_dimensions()
