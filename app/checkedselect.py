@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from app.display import block_on_input, ResizeTerminalStack
 from app.listselectitem import ListSelectItem
 from app.actionbutton import ActionButton
-from app.display import block_on_input
 from app.colors import ColorPairs
 from app.window import Window
 from typing import Tuple
@@ -26,31 +26,43 @@ class CheckedSelect(Window):
 
     def __init__(self, stdscr, items: list, title: str) -> None:
         """Initialize the window"""
-        h = len(items) + 4
-        control_button_min_width = 30
-        w = (
-            max(
-                len(sorted(items, key=lambda k: len(k["text"]), reverse=True)[0]),
-                len(title),
-            )
-            + 5  # Because we add ' [X] ' in front of each item
-        )
-        w = max([w, control_button_min_width])
-
-        super().__init__(
-            h,
-            w,
-            (int(curses.LINES / 2)) - (int(h / 2)),
-            (int(curses.COLS / 2)) - (int(w / 2)),
-            stdscr=stdscr,
-        )
-
+        self.control_button_min_width = 30
         self.items = items
-        self.selected_index = 0
         self.title = title
+        dim = self.get_dimensions()
+        super().__init__(
+            dim[0],
+            dim[1],
+            dim[2],
+            dim[3],
+            stdscr=stdscr,
+            auto_resize=True
+        )
+        self.selected_index = 0
         self.delayed_refresh = True
 
+    def get_dimensions(self) -> Tuple[int, int, int, int]:
+        """Return a Tuple of h, w, y, x."""
+        h = len(self.items) + 4
+        w = (
+            max(
+                len(sorted(self.items, key=lambda k: len(k["text"]), reverse=True)[0]['text']),
+                len(self.title),
+            )
+            + 8  # Because we add ' [X] ' in front of each item, +2 for border, +1 for EOL
+        )
+        w = max([w, self.control_button_min_width])
+        y = (int(curses.LINES / 2)) - (int(h / 2))
+        x = (int(curses.COLS / 2)) - (int(w / 2))
+        return (h, w, y, x)
+
+    def draw_after_resize(self) -> None:
+        self.draw()
+        self.draw_items()
+        curses.doupdate()
+
     def draw(self) -> None:
+        self.h, self.w, self.y, self.x = self.get_dimensions()
         super().draw()
         theme = curses.color_pair(ColorPairs.CONTROL_BAR_TOP)
         title_theme = curses.color_pair(ColorPairs.STATUS_BAR)
@@ -99,6 +111,7 @@ class CheckedSelect(Window):
         block_on_input(self.stdscr)
         canceled = False
         while True:
+            self.check_resized()
             self.draw_items()
             curses.doupdate()
             key = self.stdscr.getch()
@@ -119,5 +132,5 @@ class CheckedSelect(Window):
                 break
 
         curses.halfdelay(1)
-
+        ResizeTerminalStack.pop()
         return (canceled, self.items)

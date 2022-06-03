@@ -38,6 +38,7 @@ SilencedHeaders = (
     ("Begins", 19, 0),
 )
 
+ResizeTerminalStack = []
 
 def get_max_line_length(text: str) -> int:
     """Return the longest line in a given multiline string.

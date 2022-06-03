@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from app.display import handle_terminal_resize
+from app.display import ResizeTerminalStack, handle_terminal_resize
 from app.defaults import InternalDefaults
 import structlog
 import curses
@@ -22,7 +22,7 @@ class Window:
     """A base class for making a new curses window"""
 
     def __init__(
-        self, height: int, width: int, y: int, x: int, stdscr=None, parent=None
+        self, height: int, width: int, y: int, x: int, stdscr=None, parent=None, auto_resize=False
     ) -> None:
         """Initialize the Window object."""
 
@@ -41,18 +41,32 @@ class Window:
         self.nrows = 0
         self.ncols = 0
         self.set_max_yx()
+        if auto_resize:
+            ResizeTerminalStack.append(self.draw_after_resize)
 
     def set_max_yx(self) -> None:
         """Convenience function."""
         if self.stdscr:
             self.nrows, self.ncols = self.stdscr.getmaxyx()
 
-    def check_resized(self) -> None:
+    def check_resized(self) -> bool:
         """Convenience function."""
         if self.stdscr:
             if curses.is_term_resized(self.nrows, self.ncols):
-                handle_terminal_resize(self.stdscr)
+                self.handle_resize()
                 self.set_max_yx()
+                return True
+            return False
+
+    def handle_resize(self) -> None:
+        handle_terminal_resize(self.stdscr)
+        for f in ResizeTerminalStack:
+            f()
+            self.logger.debug("Window resize", msg=f"Called {f}")
+
+    def draw_after_resize(self) -> None:
+        """ Override me in Child class. """
+        pass
 
     def clear_sub_windows(self) -> None:
         """Forget about all our subwindows."""

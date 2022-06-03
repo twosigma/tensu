@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from app.display import get_max_lines, get_max_line_length, handle_terminal_resize
+from app.display import get_max_lines, get_max_line_length, handle_terminal_resize, ResizeTerminalStack
 from app.newsilencingentry import NewSilencingEntry
 from app.checkedselect import CheckedSelect
 from app.actionbutton import ActionButton
@@ -24,6 +24,7 @@ from app.colors import ColorPairs
 from app.datapane import DataPane
 from app.window import Window
 from app.utils import Utils
+from typing import Tuple
 import textwrap
 import curses
 import time
@@ -35,10 +36,9 @@ class EventInfoWindow(Window):
     def __init__(self, stdscr, item: dict, sensugo: SensuGoHelper) -> None:
         """Initialize the window."""
 
-        h = int(curses.LINES * 0.50)
-        top = int(curses.LINES / 2)
-        super().__init__(h, curses.COLS, top - int(h / 2), 0, stdscr=stdscr)
-        self.data_pane = DataPane(self.h - 5, int(self.w / 2), 2, 0, parent=self)
+        dim = self.get_dimensions()
+
+        super().__init__(dim[0], dim[1], dim[2], dim[3], stdscr=stdscr, auto_resize=True)
         self.sensu_go_helper = sensugo
         self.delayed_refresh = True
         self.theme = curses.color_pair(ColorPairs.STATUS_BAR)
@@ -46,6 +46,14 @@ class EventInfoWindow(Window):
         self.next_update_time = datetime.utcnow() + timedelta(seconds=-1)
         self.output_pad_min_row = 0
         self.action_message = ""
+
+    def get_dimensions(self) -> Tuple[int, int, int, int]:
+        """Return Tuple of h, w, y, x"""
+        h = int(curses.LINES * 0.50)
+        w = curses.COLS
+        y = int(curses.LINES / 2) - int(h/2)
+        x = 0
+        return (h, w, y, x)
 
     def retrieve_and_draw(self) -> None:
         """Show the item information."""
@@ -218,10 +226,21 @@ class EventInfoWindow(Window):
 
         self.draw_buttons()
 
+    def draw_after_resize(self) -> None:
+        self.draw()
+        self.retrieve_and_draw()
+
     def draw(self) -> None:
         """Draw the window."""
 
+        dim = self.get_dimensions()
+        self.h = dim[0]
+        self.w = dim[1]
+        self.y = dim[2]
+        self.x = dim[3]
+
         super().draw()
+        self.data_pane = DataPane(self.h - 5, int(self.w / 2), 2, 0, parent=self)
         self.color(self.theme)
         self.win.border(
             " ",
@@ -363,6 +382,7 @@ class EventInfoWindow(Window):
             curses.doupdate()
             key = self.stdscr.getch()
             if key in (ord("x"), ord("X"), curses.ascii.ESC):
+                ResizeTerminalStack.pop()
                 break
             if key == ord(" "):
                 self.scroll_output_pad()

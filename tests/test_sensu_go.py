@@ -32,6 +32,13 @@ class SensuGoHelperTests(unittest.TestCase):
         self.logger.setLevel(logging.DEBUG)
         self.fake_access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTQwMDk5MjcsImp0aSI6IjlkZWZkMWM2OTc5YjcyMWRmNDk2ZmJjODYzNDIxMTE5IiwiaXNzIjoiaHR0cDovL215LXNlbnN1LXNlcnZlci5jb20iLCJzdWIiOiJ1c2VyLWZyb20tand0IiwiZ3JvdXBzIjpbInNlY2luZnJhLWFkIiwic3lzdGVtOnVzZXJzIl0sInByb3ZpZGVyIjp7InByb3ZpZGVyX2lkIjoiYmFzaWMiLCJwcm92aWRlcl90eXBlIjoiIiwidXNlcl9pZCI6InVzZXItZnJvbS1qd3QifSwiYXBpX2tleSI6ZmFsc2V9.YxASxU-0P89FCvhkE05Aew05_1yWzns7ncHU-3sMVtU"
 
+    def fake_api_response(self, content, status_code=200, headers={}):
+        r = Response()
+        r.status_code = status_code
+        r.headers = headers
+        r._content = content.encode()
+        return r
+
     def test_get_authentication_method_api_key_from_state(self):
         sensu_go_helper = SensuGoHelper({"sensu_api_key": "abc213"})
         assert (
@@ -118,10 +125,7 @@ class SensuGoHelperTests(unittest.TestCase):
         assert sensu_go_helper.auth_headers()["Authorization"] == "Key ABC123"
 
     def test_namespaces_200(self):
-        r = Response()
-        r.status_code = 200
-        r.headers = {}
-        r._content = b'[ {"name": "default"}, {"name": "other"} ]'
+        r = self.fake_api_response('[ {"name": "default"}, {"name": "other"} ]')
         with mock.patch.object(
             SensuGoHelper, "_SensuGoHelper__request", return_value=r
         ) as m:
@@ -132,10 +136,7 @@ class SensuGoHelperTests(unittest.TestCase):
             assert sensu_go_helper.get_namespaces()[0]["name"] == "default"
 
     def test_namespaces_400(self):
-        r = Response()
-        r.status_code = 400
-        r.headers = {}
-        r._content = b'[ {"name": "default"}, {"name": "other"} ]'
+        r = self.fake_api_response('[ {"name": "default"}, {"name": "other"} ]', status_code=400)
         with mock.patch.object(
             SensuGoHelper, "_SensuGoHelper__request", return_value=r
         ) as m:
