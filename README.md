@@ -32,6 +32,6 @@ Tensu will do a best effort determination to pick the correct authentication met
 * When using `-k` the API Key will persisted in the app's configuration file.
 
 # Application configuration state
-Application configuration state is persisted to `$HOME/.tensu/state` in JSON format.
+Application configuration state is persisted to `$HOME/.config/tensu/state` in JSON format.
 
 

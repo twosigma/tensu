@@ -49,7 +49,7 @@ Tensu will do a best effort determination to pick the correct authentication met
 
 Application configuration state
 ===============================
-Application configure state is persisted to ``$HOME/.tensu/state`` in JSON format.
+Application configure state is persisted to ``$HOME/.config/tensu/state`` in JSON format.
 
 
 Indices and tables
