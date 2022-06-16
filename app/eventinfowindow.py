@@ -173,6 +173,7 @@ class EventInfoWindow(Window):
         )
         self.output_container.delayed_refresh = True
         self.output_container.draw()
+        self.output_container.color(curses.color_pair(ColorPairs.GREY_ON_BLACK))
 
         self.output_box = Textbox(self.output_container.win)
         if draw_fake_bottom:
@@ -192,7 +193,7 @@ class EventInfoWindow(Window):
             parent=self.output_container,
         )
         self.output_win.draw()
-        self.output_win.color(curses.color_pair(ColorPairs.WHITE_ON_BLACK))
+        self.output_win.color(curses.color_pair(ColorPairs.GREY_ON_BLACK))
         self.output_win.win.noutrefresh()
 
         if draw_fake_bottom:
