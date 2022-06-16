@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from app.display import get_max_lines, get_max_line_length, handle_terminal_resize, ResizeTerminalStack
+from app.display import break_lines_on_max_width, get_max_lines, get_max_line_length, handle_terminal_resize, ResizeTerminalStack, StatusBarTopHeight, ControlBarHeight
 from app.newsilencingentry import NewSilencingEntry
 from app.checkedselect import CheckedSelect
 from app.actionbutton import ActionButton
@@ -49,9 +49,9 @@ class EventInfoWindow(Window):
 
     def get_dimensions(self) -> Tuple[int, int, int, int]:
         """Return Tuple of h, w, y, x"""
-        h = int(curses.LINES * 0.50)
+        y = StatusBarTopHeight + ControlBarHeight
+        h = curses.LINES - y
         w = curses.COLS
-        y = int(curses.LINES / 2) - int(h/2)
         x = 0
         return (h, w, y, x)
 
@@ -152,12 +152,16 @@ class EventInfoWindow(Window):
             self.data_pane.add_item(d)
         self.data_pane.draw()
 
-        output = self.item["check"]["output"]
+        output_container_h = self.h - 5
+        output_container_w = int(self.w / 2)
+        
+        output = break_lines_on_max_width(
+                self.item["check"]["output"],
+                output_container_w - 1)
 
+        self.logger.debug("alex", output=output)
         self.pad_h = get_max_lines(output) + 1
         self.pad_w = get_max_line_length(output) + 1
-
-        output_container_h = self.h - 5
 
         draw_fake_bottom = False
         if self.pad_h > (output_container_h - 1):
@@ -165,7 +169,7 @@ class EventInfoWindow(Window):
             draw_fake_bottom = True
 
         self.output_container = Window(
-            output_container_h, int(self.w / 2) - 1, 2, self.data_pane.w, parent=self
+            output_container_h, output_container_w, 2, self.data_pane.w, parent=self
         )
         self.output_container.delayed_refresh = True
         self.output_container.draw()
@@ -260,6 +264,7 @@ class EventInfoWindow(Window):
         )
 
         self.draw_buttons()
+
 
         self.win.noutrefresh()
         self.clear_sub_windows()

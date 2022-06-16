@@ -68,3 +68,7 @@ class DisplayTests(unittest.TestCase):
             assert curses.cbreak.called
 
         test_it()
+
+    def test_break_lines_on_max_width(self):
+        test_string = "aaaabbbbcccc\ndddd\neeee\nffff\n"
+        assert display.break_lines_on_max_width(test_string, 4) == "aaaa\nbbbb\ncccc\ndddd\neeee\nffff\n"
