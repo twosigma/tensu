@@ -13,14 +13,14 @@
 # limitations under the License.
 
 from app.defaults import InternalDefaults
+from typing import Tuple
 import structlog
 import curses
 
 StatusBarTopHeight = 1
-ControlBarHeight = 3
+ControlBarHeight = 2
 StatusBarBottomHeight = 1
-ActionBarBottomHeight = 1
-ColumnHeaderHeight = 1
+ActionBarBottomHeight = 2
 
 # Column Name, Minimum Width, Grow Percent
 EventHeaders = (
@@ -84,9 +84,8 @@ def get_max_lines(text: str) -> int:
     return len(text.split("\n"))
 
 
-def header_pre_render(header_infos):
+def header_pre_render(header_infos: Tuple[str, int, float], available_width: int):
     """Return the available width for drawing columns correctly."""
-    available_width = curses.COLS - 1
     for h in header_infos:
         if h[2] == 0:
             available_width -= h[1]

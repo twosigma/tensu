@@ -16,12 +16,11 @@
 
 from app.display import (
     handle_terminal_resize,
-    EventHeaders,
-    SilencedHeaders,
     ResizeTerminalStack,
 )
 from app.defaults import ViewOptions, InternalDefaults, AuthenticationOptions, Filters
 from app.silencedinfowindow import SilencedInfoWindow
+from app.dataviewcontainer import DataViewContainer
 from datetime import datetime, timezone, timedelta
 from app.resource_handler import ResourceHandler
 from app.eventinfowindow import EventInfoWindow
@@ -29,10 +28,10 @@ from app.actionbarbottom import ActionBarBottom
 from app.statusbarbottom import StatusBarBottom
 from app.displaymessage import DisplayMessage
 from app.controlbartop import ControlBarTop
+from app.contextbutton import ContextButton
 from app.controlbutton import ControlButton
 from structlog.stdlib import LoggerFactory
 from app.statusbartop import StatusBarTop
-from app.actionbutton import ActionButton
 from app.columnheader import ColumnHeader
 from app.loginprompt import LoginPrompt
 from app.sensu_go import SensuGoHelper
@@ -150,7 +149,6 @@ class Tensu:
 
         self.make_status_bar_top()
         self.make_control_bar()
-        self.make_column_header()
         self.make_status_bar_bottom()
         self.make_data_view()
         self.make_action_bar_bottom()
@@ -219,7 +217,6 @@ class Tensu:
 
         self.state["view"] = view_option
         self.make_control_bar()
-        self.make_column_header()
         self.make_action_bar_bottom()
         self.data_view.offset = 0
         self.data_view.index = 0
@@ -354,7 +351,9 @@ class Tensu:
         When enter is pressed on an event.
         """
 
-        w = EventInfoWindow(self.s, self.data_view.selected_item, self.sensu_go_helper)
+        w = EventInfoWindow(
+            self.s, self.data_view.selected_item, self.sensu_go_helper, self.data_view
+        )
         w.draw()
         w.input_loop()
         self.make_windows()
@@ -364,7 +363,7 @@ class Tensu:
 
         self.action_bar_bottom = ActionBarBottom()
         self.action_bar_bottom.draw()
-        self.action_button_change_namespace = ActionButton(
+        self.action_button_change_namespace = ContextButton(
             self.action_bar_bottom,
             " Ctrl+P ",
             " Switch Namespace ",
@@ -375,17 +374,17 @@ class Tensu:
         self.action_button_change_namespace.draw(False)
 
         if self.view_state_is_events():
-            self.action_button_host_regex = ActionButton(
-                self.action_bar_bottom, " Ctrl+F ", " Host Regex ", 0, 0
+            self.action_button_host_regex = ContextButton(
+                self.action_bar_bottom, " Ctrl+F ", " Host Regex ", 1, 0
             )
-            self.action_button_check_regex = ActionButton(
+            self.action_button_check_regex = ContextButton(
                 self.action_bar_bottom,
                 " Ctrl+N ",
                 " CheckName Regex ",
                 self.action_button_host_regex.x + self.action_button_host_regex.w,
                 0,
             )
-            self.action_button_output_regex = ActionButton(
+            self.action_button_output_regex = ContextButton(
                 self.action_bar_bottom,
                 " Ctrl+O ",
                 " CheckOutput Regex ",
@@ -403,10 +402,10 @@ class Tensu:
             )
 
         if self.view_state_is_silenced():
-            self.action_button_silenced_name_regex = ActionButton(
-                self.action_bar_bottom, " Ctrl+F ", " Silencing Entry Regex ", 0, 0
+            self.action_button_silenced_name_regex = ContextButton(
+                self.action_bar_bottom, " Ctrl+F ", " Silencing Entry Regex ", 1, 0
             )
-            self.action_button_creator_regex = ActionButton(
+            self.action_button_creator_regex = ContextButton(
                 self.action_bar_bottom,
                 " Ctrl+O ",
                 " Creator Regex ",
@@ -414,7 +413,7 @@ class Tensu:
                 + self.action_button_silenced_name_regex.w,
                 0,
             )
-            self.action_button_reason_regex = ActionButton(
+            self.action_button_reason_regex = ContextButton(
                 self.action_bar_bottom,
                 " Ctrl+R ",
                 " Reason Regex ",
@@ -430,18 +429,6 @@ class Tensu:
             self.action_button_reason_regex.draw(
                 bool(self.get_filter_value(Filters.SILENCED_REASON_REGEX))
             )
-
-    def make_column_header(self):
-        """Draws the column headers for events/silenced items."""
-
-        self.column_header = ColumnHeader()
-        if self.view_state_is_events():
-            headers = EventHeaders
-        if self.view_state_is_silenced():
-            headers = SilencedHeaders
-
-        self.column_header.set_headers(headers)
-        self.column_header.draw()
 
     def make_control_bar(self):
         """Draws the 'ControlBar' with buttons for switching views."""
@@ -478,9 +465,12 @@ class Tensu:
 
     def make_data_view(self):
         """Draws the part of the screen that shows all of the items."""
+        self.data_view_container = DataViewContainer(self.state)
+        self.data_view_container.draw()
+        self.data_view = self.data_view_container.data_view
 
-        self.data_view = DataView()
-        self.data_view.draw()
+        # self.data_view = DataView(self.data_view_container)
+        # self.data_view.draw()
 
     def view_state_is_events(self):
         """Returns True when the view is ALL or NOT_PASSING."""
@@ -544,14 +534,13 @@ class Tensu:
         """Updates the data view when there are new items."""
 
         if self.view_state_is_events():
-            headers = EventHeaders
             items = self.apply_filters(items)
         if self.view_state_is_silenced():
             items = self.apply_filters(items)
-            headers = SilencedHeaders
 
         self.selected_index = self.data_view.render_view(
-            items, self.selected_index, self.state["view"], headers
+            items,
+            self.selected_index,
         )
 
         self.update_status(

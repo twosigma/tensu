@@ -27,8 +27,8 @@ class DataPane(Window):
 
         super().__init__(h, w, y, x, parent=parent)
         self.delayed_refresh = True
-        self.label_theme = curses.color_pair(ColorPairs.ITEM_ROW_SELECTED)
-        self.value_theme = curses.color_pair(ColorPairs.WHITE_ON_BLACK)
+        self.label_theme = curses.color_pair(ColorPairs.DATAPANE_LABEL)
+        self.value_theme = curses.color_pair(ColorPairs.DATAPANE_VALUE)
         self.items = []
         self.offset = 0
         self.max_item_y = self.h
@@ -70,7 +70,7 @@ class DataPane(Window):
 
         prev_win.draw()
         next_win.draw()
-        theme = curses.color_pair(ColorPairs.YELLOW_ON_BLACK)
+        theme = curses.color_pair(ColorPairs.POPUP_WINDOW_ACTIVE)
         is_next = self.items[self.offset + self.max_item_y :] != []
         is_prev = self.offset != 0
 

@@ -12,28 +12,43 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from app.display import ActionBarBottomHeight
+from app.display import (
+    StatusBarTopHeight,
+    ControlBarHeight,
+    StatusBarBottomHeight,
+    ActionBarBottomHeight,
+)
+
+from app.dataview import DataView
 from app.colors import ColorPairs
 from app.window import Window
 import curses
 
 
-class ActionBarBottom(Window):
-    """The bottom action bar."""
+class DataViewContainer(Window):
+    """A container for the dataview."""
 
-    def __init__(self) -> None:
-        """Initialize the window."""
+    def __init__(self, state) -> None:
 
-        super().__init__(
-            ActionBarBottomHeight,
-            curses.COLS,
-            curses.LINES - (ActionBarBottomHeight + 1),
-            0,
+        height = (
+            curses.LINES
+            - StatusBarTopHeight
+            - ControlBarHeight
+            - StatusBarBottomHeight
+            - ActionBarBottomHeight
         )
+        width = curses.COLS
+        y = StatusBarTopHeight + ControlBarHeight
+        x = 0
+        super().__init__(height, width, y, x)
+        self.data_view = DataView(state, self)
         self.delayed_refresh = True
 
     def draw(self) -> None:
         """Draw the window."""
+
         super().draw()
-        theme = curses.color_pair(ColorPairs.ACTION_BAR_BOTTOM)
+        self.data_view.draw()
+        theme = curses.color_pair(ColorPairs.COLUMN_HEADER)
         self.color(theme)
+        self.win.noutrefresh()

@@ -17,9 +17,11 @@ from app.display import (
     ControlBarHeight,
     StatusBarBottomHeight,
     ActionBarBottomHeight,
-    ColumnHeaderHeight,
+    EventHeaders,
+    SilencedHeaders,
 )
 from app.silenceditem import SilencedItem
+from app.columnheader import ColumnHeader
 from app.defaults import ViewOptions
 from app.eventitem import EventItem
 from app.colors import ColorPairs
@@ -31,21 +33,15 @@ import curses
 class DataView(Window):
     """Shows all of the events/items from Sensu backend."""
 
-    def __init__(self) -> None:
+    def __init__(self, state, parent) -> None:
         """Initialize the window."""
 
-        height = (
-            curses.LINES
-            - StatusBarTopHeight
-            - ControlBarHeight
-            - StatusBarBottomHeight
-            - ActionBarBottomHeight
-            - ColumnHeaderHeight
-        )
-        width = curses.COLS
-        y = StatusBarTopHeight + ControlBarHeight + ColumnHeaderHeight
-        x = 0
-        super().__init__(height, width, y, x)
+        self.state = state
+        height = parent.h - 2
+        width = parent.w - 2
+        y = 1
+        x = 1
+        super().__init__(height, width, y, x, parent=parent)
         self.delayed_refresh = True
 
     def draw(self) -> None:
@@ -54,17 +50,25 @@ class DataView(Window):
         super().draw()
         theme = curses.color_pair(ColorPairs.DATA_VIEW)
         self.color(theme)
+        self.make_column_headers()
 
-        self.max_items = self.h
+        self.max_items = self.h - 1
         self.offset = 0
         self.win.noutrefresh()
+
+    def make_column_headers(self) -> None:
+        self.column_header = ColumnHeader(self)
+        if self.state["view"] in (ViewOptions.ALL, ViewOptions.NOT_PASSING):
+            headers = EventHeaders
+        if self.state["view"] in (ViewOptions.SILENCED):
+            headers = SilencedHeaders
+        self.column_header.set_headers(headers)
+        self.column_header.draw()
 
     def render_view(
         self,
         items: dict,
         index: int,
-        view_option: str,
-        header_infos: Tuple[Tuple[str, int, int]],
     ) -> int:
         """Draw the list items."""
 
@@ -78,6 +82,7 @@ class DataView(Window):
             len_items=len(items),
             self_max_items=self.max_items,
         )
+        self.make_column_headers()
 
         if self.index == self.max_items and not (index + self.offset) >= len(items):
             # Key Down
@@ -121,7 +126,7 @@ class DataView(Window):
         )
 
         i = 0
-        curr_y = 0
+        curr_y = 1
         self.clear_sub_windows()
 
         for item in viewable_items:
@@ -131,16 +136,16 @@ class DataView(Window):
             else:
                 selected = False
 
-            if view_option == ViewOptions.SILENCED:
-                e_item = SilencedItem(item, curr_y, self, header_infos, selected)
+            if self.state["view"] == ViewOptions.SILENCED:
+                e_item = SilencedItem(item, curr_y, self, SilencedHeaders, selected)
             else:
-                e_item = EventItem(item, curr_y, self, header_infos, selected)
+                e_item = EventItem(item, curr_y, self, EventHeaders, selected)
             e_item.draw()
             curr_y += 1
             i += 1
 
-        if len(viewable_items) < self.h:
-            for i in range(len(viewable_items), self.h):
+        if len(viewable_items) < self.max_items:
+            for i in range(len(viewable_items) + 1, self.h):
                 blank = Window(1, self.w, i, 0, parent=self)
                 blank.draw()
                 blank.win.move(0, 0)
