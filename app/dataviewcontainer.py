@@ -22,6 +22,7 @@ from app.display import (
 from app.dataview import DataView
 from app.colors import ColorPairs
 from app.window import Window
+from typing import Tuple
 import curses
 
 
@@ -29,26 +30,34 @@ class DataViewContainer(Window):
     """A container for the dataview."""
 
     def __init__(self, state) -> None:
+        h, w, y, x = self.get_dimensions()
 
-        height = (
+        super().__init__(h, w, y, x, auto_resize=True)
+        self.data_view = DataView(state, self)
+        self.delayed_refresh = True
+
+    def get_dimensions(self) -> Tuple[int, int, int, int]:
+        h = (
             curses.LINES
             - StatusBarTopHeight
             - ControlBarHeight
             - StatusBarBottomHeight
             - ActionBarBottomHeight
         )
-        width = curses.COLS
+        w = curses.COLS
         y = StatusBarTopHeight + ControlBarHeight
         x = 0
-        super().__init__(height, width, y, x)
-        self.data_view = DataView(state, self)
-        self.delayed_refresh = True
+        return (h, w, y, x)
+
+    def draw_after_resize(self):
+        self.draw()
+        curses.doupdate()
 
     def draw(self) -> None:
         """Draw the window."""
-
+        self.h, self.w, self.y, self.x = self.get_dimensions()
         super().draw()
         self.data_view.draw()
-        theme = curses.color_pair(ColorPairs.COLUMN_HEADER)
+        theme = curses.color_pair(ColorPairs.CHROME)
         self.color(theme)
         self.win.noutrefresh()

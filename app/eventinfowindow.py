@@ -17,7 +17,6 @@ from app.display import (
     get_max_lines,
     get_max_line_length,
     handle_terminal_resize,
-    ResizeTerminalStack,
     StatusBarTopHeight,
     ControlBarHeight,
 )
@@ -204,6 +203,7 @@ class EventInfoWindow(Window):
             parent=self.output_container,
         )
         self.output_win.draw()
+        self.output_win.win.clrtobot()
         self.output_win.color(curses.color_pair(ColorPairs.OUTPUT_WINDOW))
         self.output_win.win.noutrefresh()
 
@@ -242,6 +242,7 @@ class EventInfoWindow(Window):
     def draw_after_resize(self) -> None:
         self.draw()
         self.retrieve_and_draw()
+        curses.doupdate()
 
     def draw(self) -> None:
         """Draw the window."""
@@ -252,10 +253,13 @@ class EventInfoWindow(Window):
         self.y = dim[2]
         self.x = dim[3]
 
+        self.clear_sub_windows()
+
         super().draw()
+
         self.data_pane = DataPane(self.h - 5, int(self.w / 2), 2, 0, parent=self)
-        self.win.clear()
         self.color(self.theme)
+        self.win.clear()
         self.win.addstr(
             0,
             1,
@@ -265,7 +269,6 @@ class EventInfoWindow(Window):
 
         self.win.noutrefresh()
         self.draw_buttons()
-        self.clear_sub_windows()
 
     def draw_buttons(self) -> None:
         """Draw the buttons!"""
@@ -333,7 +336,7 @@ class EventInfoWindow(Window):
         self.logger.debug("resolve_check", reply=reply)
 
     def silence(self) -> None:
-        new_silencing_entry = NewSilencingEntry(self.stdscr, self.item)
+        new_silencing_entry = NewSilencingEntry(self.stdscr, self.item, self)
         new_silencing_entry.draw()
         canceled, silencing_entry, reason = new_silencing_entry.prompt()
         if not canceled:
@@ -351,7 +354,10 @@ class EventInfoWindow(Window):
         for item in self.item["check"]["silenced"]:
             s_list.append({"text": item, "checked": True})
         checked_select = CheckedSelect(
-            self.stdscr, s_list, "Select all entries you would like to clear."
+            self.stdscr,
+            s_list,
+            "Select all entries you would like to clear.",
+            parent=self,
         )
         checked_select.draw()
         canceled, items = checked_select.select()
@@ -385,7 +391,6 @@ class EventInfoWindow(Window):
             curses.doupdate()
             key = self.stdscr.getch()
             if key in (ord("x"), ord("X"), curses.ascii.ESC):
-                ResizeTerminalStack.pop()
                 break
             if key == ord(" "):
                 self.scroll_output_pad()

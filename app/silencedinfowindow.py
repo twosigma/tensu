@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from app.display import block_on_input, ResizeTerminalStack
+from app.display import block_on_input
 from app.actionbutton import ActionButton
 from app.sensu_go import SensuGoHelper
 from app.datapane import DataPane
@@ -25,12 +25,19 @@ import curses
 class SilencedInfoWindow(Window):
     """The window that shows up when you hit enter on a silenced item."""
 
-    def __init__(self, stdscr, item: dict, sensu_go: SensuGoHelper) -> None:
+    def __init__(self, stdscr, item: dict, sensu_go: SensuGoHelper, parent) -> None:
         """Initialize the window."""
+        self.parent = parent
         dim = self.get_dimensions()
 
         super().__init__(
-            dim[0], dim[1], dim[2], dim[3], stdscr=stdscr, auto_resize=True
+            dim[0],
+            dim[1],
+            dim[2],
+            dim[3],
+            stdscr=stdscr,
+            auto_resize=True,
+            parent=parent,
         )
         self.sensu_go_helper = sensu_go
         self.delayed_refresh = True
@@ -38,14 +45,18 @@ class SilencedInfoWindow(Window):
 
     def get_dimensions(self) -> Tuple[int, int, int, int]:
         """Return Tuple of h, w, y. x"""
-        w = int(curses.COLS * 0.75)
+        w = int(self.parent.w * 0.75)
         h = 10
-        y = int(curses.LINES / 2) - int(h / 2)
-        x = int(curses.COLS / 2) - int(w / 2)
+        y = int(self.parent.h / 2) - int(h / 2)
+        x = int(self.parent.w / 2) - int(w / 2)
         return (h, w, y, x)
 
-    def draw(self) -> None:
+    def draw_after_resize(self) -> None:
+        self.draw()
+        curses.doupdate()
 
+    def draw(self) -> None:
+        self.clear_sub_windows()
         dim = self.get_dimensions()
         self.h = dim[0]
         self.w = dim[1]
@@ -98,4 +109,3 @@ class SilencedInfoWindow(Window):
                 "clear_silence", reply=reply, entry=self.item["metadata"]["name"]
             )
         curses.halfdelay(1)
-        ResizeTerminalStack.pop()

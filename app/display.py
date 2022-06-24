@@ -32,13 +32,11 @@ EventHeaders = (
 )
 # Column Name, Minimum Width, Grow Percent
 SilencedHeaders = (
-    ("Creator", 20, 0.05),
+    ("Creator", 20, 0.10),
     ("Silencing Entry", 35, 0.60),
-    ("Reason", 50, 0.30),
+    ("Reason", 3, 0.30),
     ("Begins", 19, 0),
 )
-
-ResizeTerminalStack = []
 
 
 def break_lines_on_max_width(text: str, max_w: int) -> str:

@@ -16,7 +16,6 @@
 
 from app.display import (
     handle_terminal_resize,
-    ResizeTerminalStack,
 )
 from app.defaults import ViewOptions, InternalDefaults, AuthenticationOptions, Filters
 from app.silencedinfowindow import SilencedInfoWindow
@@ -95,7 +94,6 @@ class Tensu:
         self.resource_handler = ResourceHandler(self.state, self.sensu_go_helper)
         self.resource_handler.set_callable(self.update_view)
         self.resource_handler.set_fetch_status_callable(self.update_fetch_status)
-        ResizeTerminalStack.append(self.make_windows)
 
     def configure_logger(self):
         """Configures the application logger
@@ -339,7 +337,7 @@ class Tensu:
         When enter is pressed on a silenced item.
         """
         w = SilencedInfoWindow(
-            self.s, self.data_view.selected_item, self.sensu_go_helper
+            self.s, self.data_view.selected_item, self.sensu_go_helper, self.data_view
         )
         w.draw()
         w.prompt()
@@ -466,11 +464,9 @@ class Tensu:
     def make_data_view(self):
         """Draws the part of the screen that shows all of the items."""
         self.data_view_container = DataViewContainer(self.state)
+        self.data_view_container.root_resize_func = self.make_windows
         self.data_view_container.draw()
         self.data_view = self.data_view_container.data_view
-
-        # self.data_view = DataView(self.data_view_container)
-        # self.data_view.draw()
 
     def view_state_is_events(self):
         """Returns True when the view is ALL or NOT_PASSING."""
@@ -724,7 +720,7 @@ class Tensu:
         self.check_default_namespace()
         self.fetch_data()
         curses.doupdate()
-        curses.napms(10)
+        curses.napms(5)
 
     def main(self, stdscr):
         """Entrypoint of the application.
@@ -777,7 +773,6 @@ class Tensu:
                     stdscr,
                     f"Error!\nCheck {self.debug_log_file}\nYour terminal dimensions may be too small!",
                 ).draw()
-                ResizeTerminalStack = [self.make_windows]
 
 
 if __name__ == "__main__":

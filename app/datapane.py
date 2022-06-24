@@ -123,3 +123,4 @@ class DataPane(Window):
                 blank.win.move(0, 0)
                 blank.win.clrtoeol()
                 blank.win.noutrefresh()
+        self.win.noutrefresh()

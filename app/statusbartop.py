@@ -44,7 +44,7 @@ class StatusBarTop(Window):
         titlebar = Window(1, curses.COLS, 0, 0)
         titlebar.delayed_refresh = True
         titlebar.draw()
-        titlebar.color(curses.color_pair(ColorPairs.SENSU_GREEN))
+        titlebar.color(curses.color_pair(ColorPairs.CHROME))
         titlebar.win.addstr(0, 2, self.logo_label, curses.color_pair(ColorPairs.LOGO))
         titlebar.win.addstr(
             0,

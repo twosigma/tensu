@@ -63,7 +63,7 @@ class ColorPairs:
     WHITE_ON_BLACK = 143
     SILENCED = 144
     SILENCED_SELECTED = 145
-    SENSU_GREEN = 146
+    CHROME = 146
     CONTEXT_HOTKEY = 147
     CONTEXT_TEXT = 148
     CONTEXT_HOTKEY_SELECTED = 149
@@ -102,10 +102,10 @@ class ColorPairs:
         curses.init_pair(ColorPairs.ACTION_TEXT, 243, 235)
         curses.init_pair(ColorPairs.SILENCED, 238, 232)
         curses.init_pair(ColorPairs.SILENCED_SELECTED, 79, 232)
-        curses.init_pair(ColorPairs.COLUMN_HEADER, 253, 23)
+        curses.init_pair(ColorPairs.COLUMN_HEADER, 253, 235)
         curses.init_pair(ColorPairs.BUTTON_TEXT_SELECTED, 255, 23)
         curses.init_pair(ColorPairs.BUTTON_HOTKEY_SELECTED, 255, 23)
-        curses.init_pair(ColorPairs.SENSU_GREEN, 232, 23)
+        curses.init_pair(ColorPairs.CHROME, 232, 23)
         curses.init_pair(ColorPairs.NAMESPACE_LABEL, 232, 153)
         curses.init_pair(ColorPairs.DATA_VIEW, 255, 232)
         curses.init_pair(ColorPairs.EVENT_FAILING, 255, 160)

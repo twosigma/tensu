@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from app.display import block_on_input, ResizeTerminalStack
+from app.display import block_on_input
 from app.listselectitem import ListSelectItem
 from app.actionbutton import ActionButton
 from app.colors import ColorPairs
@@ -24,14 +24,21 @@ import curses
 class CheckedSelect(Window):
     """A small window to mark selections."""
 
-    def __init__(self, stdscr, items: list, title: str) -> None:
+    def __init__(self, stdscr, items: list, title: str, parent) -> None:
         """Initialize the window"""
+        self.parent = parent
         self.control_button_min_width = 30
         self.items = items
         self.title = title
         dim = self.get_dimensions()
         super().__init__(
-            dim[0], dim[1], dim[2], dim[3], stdscr=stdscr, auto_resize=True
+            dim[0],
+            dim[1],
+            dim[2],
+            dim[3],
+            stdscr=stdscr,
+            auto_resize=True,
+            parent=parent,
         )
         self.selected_index = 0
         self.delayed_refresh = True
@@ -51,8 +58,8 @@ class CheckedSelect(Window):
             + 8  # Because we add ' [X] ' in front of each item, +2 for border, +1 for EOL
         )
         w = max([w, self.control_button_min_width])
-        y = (int(curses.LINES / 2)) - (int(h / 2))
-        x = (int(curses.COLS / 2)) - (int(w / 2))
+        y = (int(self.parent.h / 2)) - (int(h / 2))
+        x = (int(self.parent.w / 2)) - (int(w / 2))
         return (h, w, y, x)
 
     def draw_after_resize(self) -> None:
@@ -62,6 +69,7 @@ class CheckedSelect(Window):
 
     def draw(self) -> None:
         self.h, self.w, self.y, self.x = self.get_dimensions()
+        self.clear_sub_windows()
         super().draw()
         theme = curses.color_pair(ColorPairs.CONTROL_BAR_TOP)
         title_theme = curses.color_pair(ColorPairs.STATUS_BAR)
@@ -72,7 +80,6 @@ class CheckedSelect(Window):
 
     def draw_items(self) -> None:
         """Draw the items."""
-        self.clear_sub_windows()
         l_item_cur_y = 2
         for index, item in enumerate(self.items):
             if item["checked"] == True:
@@ -131,5 +138,4 @@ class CheckedSelect(Window):
                 break
 
         curses.halfdelay(1)
-        ResizeTerminalStack.pop()
         return (canceled, self.items)

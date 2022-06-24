@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from app.display import ResizeTerminalStack
 from app.actionbutton import ActionButton
 from curses.textpad import Textbox
 from app.colors import ColorPairs
@@ -30,13 +29,14 @@ class CancelEditException(Exception):
 class NewSilencingEntry(Window):
     """Create a new silencing entry"""
 
-    def __init__(self, stdscr, event: dict) -> None:
+    def __init__(self, stdscr, event: dict, parent) -> None:
         """Initialize the window."""
         # TODO Make this have feature parity with web dashboard
         self.default_value = f"entity:{event['entity']['metadata']['name']}:{event['check']['metadata']['name']}"
         self.title = "Create a new silencing entry"
+        self.parent = parent
         h, w, y, x = self.get_dimensions()
-        super().__init__(h, w, y, x, stdscr=stdscr, auto_resize=True)
+        super().__init__(h, w, y, x, stdscr=stdscr, auto_resize=True, parent=parent)
         self.event = event
         self.delayed_refresh = True
         self.logger.debug("silence", w=w)
@@ -49,21 +49,24 @@ class NewSilencingEntry(Window):
         """Return Tuple of h, w, y, x"""
         h = 10
         w = max([len(self.default_value) + 3, 21, len(self.title)])
-        y = int(curses.LINES / 2) - int(h / 2)
-        x = int(curses.COLS / 2) - int(w / 2)
+        y = int(self.parent.h / 2) - int(h / 2)
+        x = int(self.parent.w / 2) - int(w / 2)
         return (h, w, y, x)
 
     def draw_after_resize(self) -> None:
         self.edit_boxes = []
         self.edit_box_index = 0
         self.draw()
+        curses.doupdate()
 
     def draw(self) -> None:
         self.h, self.w, self.y, self.x = self.get_dimensions()
+        self.clear_sub_windows()
         super().draw()
         theme = curses.color_pair(ColorPairs.CONTROL_BAR_TOP)
         textbox_theme = curses.color_pair(ColorPairs.TEXT_INPUT)
         self.color(theme)
+        self.win.clear()
         self.win.border(0, 0, 0, 0, 0, 0, 0, 0)
         title_win = Window(1, self.w - 2, 1, 1, parent=self)
         title_win.draw()
@@ -140,5 +143,4 @@ class NewSilencingEntry(Window):
         except CancelEditException:
             return (True, "", "")
         finally:
-            ResizeTerminalStack.pop()
             curses.curs_set(0)

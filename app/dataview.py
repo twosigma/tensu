@@ -37,16 +37,26 @@ class DataView(Window):
         """Initialize the window."""
 
         self.state = state
-        height = parent.h - 2
-        width = parent.w - 2
+        self.parent = parent
+        h, w, y, x = self.get_dimensions()
+        super().__init__(h, w, y, x, parent=parent, auto_resize=True)
+        self.delayed_refresh = True
+
+    def get_dimensions(self) -> Tuple[int, int, int, int]:
+        h = self.parent.h - 2
+        w = self.parent.w - 2
         y = 1
         x = 1
-        super().__init__(height, width, y, x, parent=parent)
-        self.delayed_refresh = True
+        return (h, w, y, x)
+
+    def draw_after_resize(self) -> None:
+        self.draw()
+        curses.doupdate()
 
     def draw(self) -> None:
         """Draw the window."""
 
+        self.h, self.w, self.y, self.x = self.get_dimensions()
         super().draw()
         theme = curses.color_pair(ColorPairs.DATA_VIEW)
         self.color(theme)
