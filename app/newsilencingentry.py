@@ -48,9 +48,9 @@ class NewSilencingEntry(Window):
     def get_dimensions(self) -> Tuple[int, int, int, int]:
         """Return Tuple of h, w, y, x"""
         h = 10
-        w = max([ len(self.default_value) + 3, 21, len(self.title)])
+        w = max([len(self.default_value) + 3, 21, len(self.title)])
         y = int(curses.LINES / 2) - int(h / 2)
-        x = int(curses.COLS /2) - int(w /2)
+        x = int(curses.COLS / 2) - int(w / 2)
         return (h, w, y, x)
 
     def draw_after_resize(self) -> None:
