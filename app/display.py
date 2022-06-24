@@ -40,6 +40,7 @@ SilencedHeaders = (
 
 ResizeTerminalStack = []
 
+
 def break_lines_on_max_width(text: str, max_w: int) -> str:
     """Formats a string so no line of text is longer than max_width
     by adding newlines instead of truncating."""
@@ -51,11 +52,12 @@ def break_lines_on_max_width(text: str, max_w: int) -> str:
             new.append(line)
         else:
             s = 0
-            while line[s:max_w+s] != '':
-                new.append(line[s:max_w+s])
-                s+=max_w
+            while line[s : max_w + s] != "":
+                new.append(line[s : max_w + s])
+                s += max_w
 
     return "\n".join(new)
+
 
 def get_max_line_length(text: str) -> int:
     """Return the longest line in a given multiline string.
