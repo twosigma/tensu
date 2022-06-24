@@ -22,7 +22,14 @@ class Window:
     """A base class for making a new curses window"""
 
     def __init__(
-        self, height: int, width: int, y: int, x: int, stdscr=None, parent=None, auto_resize=False
+        self,
+        height: int,
+        width: int,
+        y: int,
+        x: int,
+        stdscr=None,
+        parent=None,
+        auto_resize=False,
     ) -> None:
         """Initialize the Window object."""
 
@@ -65,7 +72,7 @@ class Window:
             self.logger.debug("Window resize", msg=f"Called {f}")
 
     def draw_after_resize(self) -> None:
-        """ Override me in Child class. """
+        """Override me in Child class."""
         pass
 
     def clear_sub_windows(self) -> None:
