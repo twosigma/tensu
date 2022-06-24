@@ -74,6 +74,7 @@ class CheckedSelect(Window):
         theme = curses.color_pair(ColorPairs.CONTROL_BAR_TOP)
         title_theme = curses.color_pair(ColorPairs.STATUS_BAR)
         self.color(theme)
+        self.win.clear()
         self.win.border(0, 0, 0, 0, 0, 0, 0, 0)
         self.win.addstr(1, 1, self.title, title_theme)
         self.win.noutrefresh()
