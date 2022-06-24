@@ -31,12 +31,7 @@ class CheckedSelect(Window):
         self.title = title
         dim = self.get_dimensions()
         super().__init__(
-            dim[0],
-            dim[1],
-            dim[2],
-            dim[3],
-            stdscr=stdscr,
-            auto_resize=True
+            dim[0], dim[1], dim[2], dim[3], stdscr=stdscr, auto_resize=True
         )
         self.selected_index = 0
         self.delayed_refresh = True
@@ -46,7 +41,11 @@ class CheckedSelect(Window):
         h = len(self.items) + 4
         w = (
             max(
-                len(sorted(self.items, key=lambda k: len(k["text"]), reverse=True)[0]['text']),
+                len(
+                    sorted(self.items, key=lambda k: len(k["text"]), reverse=True)[0][
+                        "text"
+                    ]
+                ),
                 len(self.title),
             )
             + 8  # Because we add ' [X] ' in front of each item, +2 for border, +1 for EOL
