@@ -14,8 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from app.display import handle_terminal_resize, EventHeaders, SilencedHeaders, ResizeTerminalStack
+from app.display import (
+    handle_terminal_resize,
+    EventHeaders,
+    SilencedHeaders,
+    ResizeTerminalStack,
+)
 from app.defaults import ViewOptions, InternalDefaults, AuthenticationOptions, Filters
+from app.silencedinfowindow import SilencedInfoWindow
 from datetime import datetime, timezone, timedelta
 from app.resource_handler import ResourceHandler
 from app.eventinfowindow import EventInfoWindow
@@ -321,12 +327,26 @@ class Tensu:
         if ch == 10:  # Enter
             if self.view_state_is_events():
                 self.show_event_info()
+            if self.view_state_is_silenced():
+                self.show_silenced_info()
 
         if ch == curses.KEY_DOWN or ch == ord("j"):
             self.move_index(1)
 
         if ch == curses.KEY_UP or ch == ord("k"):
             self.move_index(-1)
+
+    def show_silenced_info(self):
+        """Show a modal window with additional information.
+
+        When enter is pressed on a silenced item.
+        """
+        w = SilencedInfoWindow(
+            self.s, self.data_view.selected_item, self.sensu_go_helper
+        )
+        w.draw()
+        w.prompt()
+        self.make_windows()
 
     def show_event_info(self):
         """Shows a modal window with additional information.
@@ -603,7 +623,7 @@ class Tensu:
         """Checks authentication.
 
         If there is no access token, or the access token is invalid or expired,
-        and if there is no refresh token, then re-authenticate with user credentials 
+        and if there is no refresh token, then re-authenticate with user credentials
         to receive a new access token and refresh token.
 
         If there is an access token, check if valid, if it expires soon then request
