@@ -12,7 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from app.display import break_lines_on_max_width, get_max_lines, get_max_line_length, handle_terminal_resize, ResizeTerminalStack, StatusBarTopHeight, ControlBarHeight
+from app.display import (
+    break_lines_on_max_width,
+    get_max_lines,
+    get_max_line_length,
+    handle_terminal_resize,
+    ResizeTerminalStack,
+    StatusBarTopHeight,
+    ControlBarHeight,
+)
 from app.newsilencingentry import NewSilencingEntry
 from app.checkedselect import CheckedSelect
 from app.actionbutton import ActionButton
@@ -38,7 +46,9 @@ class EventInfoWindow(Window):
 
         dim = self.get_dimensions()
 
-        super().__init__(dim[0], dim[1], dim[2], dim[3], stdscr=stdscr, auto_resize=True)
+        super().__init__(
+            dim[0], dim[1], dim[2], dim[3], stdscr=stdscr, auto_resize=True
+        )
         self.sensu_go_helper = sensugo
         self.delayed_refresh = True
         self.theme = curses.color_pair(ColorPairs.STATUS_BAR)
@@ -154,10 +164,10 @@ class EventInfoWindow(Window):
 
         output_container_h = self.h - 5
         output_container_w = int(self.w / 2)
-        
+
         output = break_lines_on_max_width(
-                self.item["check"]["output"],
-                output_container_w - 1)
+            self.item["check"]["output"], output_container_w - 1
+        )
 
         self.logger.debug("alex", output=output)
         self.pad_h = get_max_lines(output) + 1
@@ -265,7 +275,6 @@ class EventInfoWindow(Window):
         )
 
         self.draw_buttons()
-
 
         self.win.noutrefresh()
         self.clear_sub_windows()
