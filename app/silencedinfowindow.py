@@ -46,7 +46,7 @@ class SilencedInfoWindow(Window):
     def get_dimensions(self) -> Tuple[int, int, int, int]:
         """Return Tuple of h, w, y. x"""
         w = int(self.parent.w * 0.75)
-        h = 10
+        h = 12
         y = int(self.parent.h / 2) - int(h / 2)
         x = int(self.parent.w / 2) - int(w / 2)
         return (h, w, y, x)
@@ -64,14 +64,22 @@ class SilencedInfoWindow(Window):
         self.x = dim[3]
 
         super().draw()
-        theme = curses.color_pair(ColorPairs.CONTROL_BAR_TOP)
-        title_theme = curses.color_pair(ColorPairs.STATUS_BAR)
-        self.color(theme)
+        border_theme = curses.color_pair(ColorPairs.WHITE_ON_BLACK)
+        theme = curses.color_pair(ColorPairs.POPUP_WINDOW)
+        title_theme = curses.color_pair(ColorPairs.POPUP_WINDOW_ACTIVE)
+        self.color(border_theme)
         self.win.clear()
-        self.win.border(0, 0, 0, 0, 0, 0, 0, 0)
-        self.win.addstr(1, 1, "Silencing Entry Info", title_theme)
+        self.container = Window(self.h - 2, self.w - 2, 1, 1, parent=self)
+        self.container.draw()
+        self.container.color(theme)
+        self.container.win.clear()
+
+        self.container.win.addstr(0, 1, "Silencing Entry Info", title_theme)
+
+        self.container.win.noutrefresh()
         self.win.noutrefresh()
-        self.data_pane = DataPane(5, self.w - 2, 2, 1, parent=self)
+
+        self.data_pane = DataPane(5, self.container.w - 1, 1, 1, parent=self.container)
         self.data_pane.add_item(("Name:", self.item["metadata"]["name"]))
         self.data_pane.add_item(("Created By:", self.item["metadata"]["created_by"]))
         self.data_pane.add_item(("Expires:", self.item["expire_at"]))
@@ -79,10 +87,10 @@ class SilencedInfoWindow(Window):
             ("Reason:", self.item.get("reason", "(No reason provided)"))
         )
         self.data_pane.draw()
-        action_button_clear = ActionButton(self, " Ctrl+I ", " Clear Silence ", 1, 8)
+        action_button_clear = ActionButton(self.container, " Ctrl+I ", " Clear Silence ", 1, 8)
         action_button_clear.draw()
         action_button_close = ActionButton(
-            self, " Enter ", " Close ", action_button_clear.w + 2, 8
+            self.container, " Enter ", " Close ", action_button_clear.w + 2, 8
         )
         action_button_close.draw()
 
