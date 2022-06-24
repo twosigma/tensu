@@ -29,6 +29,7 @@ class SilencedInfoWindow(Window):
         """Initialize the window."""
         self.parent = parent
         dim = self.get_dimensions()
+        self.title  = 'Silencing Entry Info'
 
         super().__init__(
             dim[0],
@@ -56,28 +57,24 @@ class SilencedInfoWindow(Window):
         curses.doupdate()
 
     def draw(self) -> None:
+        self.h, self.w, self.y, self.x = self.get_dimensions()
         self.clear_sub_windows()
-        dim = self.get_dimensions()
-        self.h = dim[0]
-        self.w = dim[1]
-        self.y = dim[2]
-        self.x = dim[3]
-
         super().draw()
+
         border_theme = curses.color_pair(ColorPairs.WHITE_ON_BLACK)
         theme = curses.color_pair(ColorPairs.POPUP_WINDOW)
         title_theme = curses.color_pair(ColorPairs.POPUP_WINDOW_ACTIVE)
+
         self.color(border_theme)
         self.win.clear()
+        self.win.noutrefresh()
+
         self.container = Window(self.h - 2, self.w - 2, 1, 1, parent=self)
         self.container.draw()
         self.container.color(theme)
         self.container.win.clear()
-
-        self.container.win.addstr(0, 1, "Silencing Entry Info", title_theme)
-
+        self.container.win.addstr(0, 1, self.title, title_theme)
         self.container.win.noutrefresh()
-        self.win.noutrefresh()
 
         self.data_pane = DataPane(5, self.container.w - 1, 1, 1, parent=self.container)
         self.data_pane.add_item(("Name:", self.item["metadata"]["name"]))
@@ -87,6 +84,7 @@ class SilencedInfoWindow(Window):
             ("Reason:", self.item.get("reason", "(No reason provided)"))
         )
         self.data_pane.draw()
+
         action_button_clear = ActionButton(self.container, " Ctrl+I ", " Clear Silence ", 1, 8)
         action_button_clear.draw()
         action_button_close = ActionButton(
