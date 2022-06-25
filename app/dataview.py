@@ -61,10 +61,16 @@ class DataView(Window):
         theme = curses.color_pair(ColorPairs.DATA_VIEW)
         self.color(theme)
         self.make_column_headers()
-
-        self.max_items = self.h - 1
+        self.make_container()
+        self.max_items = self.container.h
         self.offset = 0
         self.win.noutrefresh()
+
+    def make_container(self) -> None:
+        self.container = Window(self.h - 1, self.w, 1, 0, parent=self)
+        self.container.draw()
+        self.container.win.clrtobot()
+        self.container.win.noutrefresh()
 
     def make_column_headers(self) -> None:
         self.column_header = ColumnHeader(self)
@@ -81,12 +87,15 @@ class DataView(Window):
         index: int,
     ) -> int:
         """Draw the list items."""
+        if len(items) == 0:
+            return index
 
         self.index = index
         index_set = index
         self.logger.debug(
             "render_view (before)",
             index=index,
+            index_set=index_set,
             self_index=self.index,
             self_offset=self.offset,
             len_items=len(items),
@@ -130,14 +139,16 @@ class DataView(Window):
             "render_view (after)",
             index=index,
             self_index=self.index,
+            index_set=index_set,
             self_offset=self.offset,
             len_items=len(items),
             self_max_items=self.max_items,
         )
 
         i = 0
-        curr_y = 1
+        curr_y = 0
         self.clear_sub_windows()
+        self.container.clear_sub_windows()
 
         for item in viewable_items:
             if i == index_set:
@@ -147,16 +158,17 @@ class DataView(Window):
                 selected = False
 
             if self.state["view"] == ViewOptions.SILENCED:
-                e_item = SilencedItem(item, curr_y, self, SilencedHeaders, selected)
+                e_item = SilencedItem(item, curr_y, self.container, SilencedHeaders, selected)
             else:
-                e_item = EventItem(item, curr_y, self, EventHeaders, selected)
+                e_item = EventItem(item, curr_y, self.container, EventHeaders, selected)
             e_item.draw()
             curr_y += 1
             i += 1
 
         if len(viewable_items) < self.max_items:
-            for i in range(len(viewable_items) + 1, self.h):
-                blank = Window(1, self.w, i, 0, parent=self)
+            #for i in range(len(viewable_items) + 1, self.container.h):
+            for i in range(len(viewable_items), self.container.h):
+                blank = Window(1, self.w, i, 0, parent=self.container)
                 blank.draw()
                 blank.win.move(0, 0)
                 blank.win.clrtoeol()

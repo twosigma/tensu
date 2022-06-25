@@ -160,8 +160,8 @@ class Tensu:
         the viewport.
         """
 
-        if self.data_view.h > self.state["max_fetch_events"]:
-            return self.data_view.h
+        if self.data_view.container.h > self.state["max_fetch_events"]:
+            return self.data_view.container.h
         return self.state["max_fetch_events"]
 
     def get_state(self):
@@ -197,7 +197,7 @@ class Tensu:
         """Moves the event item cursor up or down a full page."""
 
         # 0 = up, 1 = down
-        data_view_h = self.data_view.h - 1
+        data_view_h = self.data_view.container.h - 1
         if direction == 0:
             self.move_index(-data_view_h)
         else:
