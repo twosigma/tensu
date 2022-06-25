@@ -37,3 +37,4 @@ class ActionBarBottom(Window):
         super().draw()
         theme = curses.color_pair(ColorPairs.ACTION_BAR_BOTTOM)
         self.color(theme)
+        self.win.noutrefresh()

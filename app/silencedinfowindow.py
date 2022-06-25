@@ -29,7 +29,7 @@ class SilencedInfoWindow(Window):
         """Initialize the window."""
         self.parent = parent
         dim = self.get_dimensions()
-        self.title  = 'Silencing Entry Info'
+        self.title = "Silencing Entry Info"
 
         super().__init__(
             dim[0],
@@ -85,7 +85,9 @@ class SilencedInfoWindow(Window):
         )
         self.data_pane.draw()
 
-        action_button_clear = ActionButton(self.container, " Ctrl+I ", " Clear Silence ", 1, 8)
+        action_button_clear = ActionButton(
+            self.container, " Ctrl+I ", " Clear Silence ", 1, 8
+        )
         action_button_clear.draw()
         action_button_close = ActionButton(
             self.container, " Enter ", " Close ", action_button_clear.w + 2, 8

@@ -259,7 +259,7 @@ class EventInfoWindow(Window):
 
         self.data_pane = DataPane(self.h - 5, int(self.w / 2), 2, 0, parent=self)
         self.color(self.theme)
-        self.win.clear()
+        self.win.clrtobot()
         self.win.addstr(
             0,
             1,

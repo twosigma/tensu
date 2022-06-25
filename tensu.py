@@ -107,8 +107,10 @@ class Tensu:
                 structlog.stdlib.filter_by_level,
                 structlog.stdlib.add_logger_name,
                 structlog.stdlib.add_log_level,
+                structlog.stdlib.PositionalArgumentsFormatter(),
+                structlog.processors.TimeStamper(fmt="iso"),
                 structlog.processors.format_exc_info,
-                structlog.processors.JSONRenderer(indent=2, sort_keys=True),
+                structlog.processors.JSONRenderer(),
             ],
             logger_factory=structlog.stdlib.LoggerFactory(),
         )
@@ -118,8 +120,6 @@ class Tensu:
         else:
             logger.setLevel(logging.INFO)
         fh = logging.FileHandler(self.debug_log_file)
-        fmt = logging.Formatter("%(asctime)s  %(name)s: %(levelname)s - %(message)s")
-        fh.setFormatter(fmt)
         fh.setLevel(logging.DEBUG)
         logger.addHandler(fh)
         self.logger = structlog.get_logger(InternalDefaults.APPNAME)
@@ -147,9 +147,9 @@ class Tensu:
 
         self.make_status_bar_top()
         self.make_control_bar()
-        self.make_status_bar_bottom()
         self.make_data_view()
         self.make_action_bar_bottom()
+        self.make_status_bar_bottom()
         self.resource_handler.force_call()
 
     def max_events_to_fetch(self):
@@ -463,8 +463,9 @@ class Tensu:
 
     def make_data_view(self):
         """Draws the part of the screen that shows all of the items."""
-        self.data_view_container = DataViewContainer(self.state)
-        self.data_view_container.root_resize_func = self.make_windows
+        if not getattr(self, "data_view_container", False):
+            self.data_view_container = DataViewContainer(self.state)
+            self.data_view_container.root_resize_func = self.resize_term
         self.data_view_container.draw()
         self.data_view = self.data_view_container.data_view
 

@@ -90,7 +90,7 @@ class DataPane(Window):
         self.clear_sub_windows()
         self.get_label_rjust_size()
         super().draw()
-        self.win.clear()
+        self.win.clrtobot()
         self.draw_page_buttons()
         max_y = self.max_item_y
         max_x = self.w - 2

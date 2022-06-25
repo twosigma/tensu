@@ -60,8 +60,8 @@ class Window:
         if self.stdscr:
             if curses.is_term_resized(self.nrows, self.ncols):
                 handle_terminal_resize(self.stdscr)
-                self.handle_resize()
                 self.set_max_yx()
+                self.handle_resize()
                 return True
             return False
 

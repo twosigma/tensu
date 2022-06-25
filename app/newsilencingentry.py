@@ -80,7 +80,9 @@ class NewSilencingEntry(Window):
         self.container.win.addstr(0, 1, self.title, title_theme)
         self.container.win.noutrefresh()
 
-        self.silencing_entry_win = Window(1, self.container.w - 2, 2, 1, None, parent=self.container)
+        self.silencing_entry_win = Window(
+            1, self.container.w - 2, 2, 1, None, parent=self.container
+        )
         self.silencing_entry_win.draw()
         self.silencing_entry_win.color(textbox_theme)
         self.silencing_entry_win.win.addstr(0, 0, self.default_value)
@@ -89,7 +91,9 @@ class NewSilencingEntry(Window):
             self.silencing_entry_win.win, insert_mode=True
         )
 
-        self.reason_win = Window(3, self.container.w - 2, 4, 1, None, parent=self.container)
+        self.reason_win = Window(
+            3, self.container.w - 2, 4, 1, None, parent=self.container
+        )
         self.reason_win.draw()
         self.reason_win.color(textbox_theme)
         self.reason_win.win.noutrefresh()
