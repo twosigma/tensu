@@ -45,7 +45,7 @@ class CheckedSelect(Window):
 
     def get_dimensions(self) -> Tuple[int, int, int, int]:
         """Return a Tuple of h, w, y, x."""
-        h = len(self.items) + 4
+        h = len(self.items) + 6
         w = (
             max(
                 len(
@@ -108,10 +108,10 @@ class CheckedSelect(Window):
             l_item_cur_y += 1
 
         button_y = l_item_cur_y
-        action_button_accept = ActionButton(self, "A", "Accept", 1, button_y)
+        action_button_accept = ActionButton(self.container, "A", "Accept", 1, button_y)
         action_button_accept.draw()
         action_button_cancel = ActionButton(
-            self, "ESC", "Cancel", action_button_accept.w + 1, button_y
+            self.container, "ESC", "Cancel", action_button_accept.w + 1, button_y
         )
         action_button_cancel.draw()
 
