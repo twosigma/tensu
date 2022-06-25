@@ -55,7 +55,7 @@ class CheckedSelect(Window):
                 ),
                 len(self.title),
             )
-            + 8  # Because we add ' [X] ' in front of each item, +2 for border, +1 for EOL
+            + 10  # Because we add ' [X] ' in front of each item, +4 for border, +1 for EOL
         )
         w = max([w, self.control_button_min_width])
         y = (int(self.parent.h / 2)) - (int(h / 2))
@@ -71,13 +71,21 @@ class CheckedSelect(Window):
         self.h, self.w, self.y, self.x = self.get_dimensions()
         self.clear_sub_windows()
         super().draw()
-        theme = curses.color_pair(ColorPairs.CONTROL_BAR_TOP)
-        title_theme = curses.color_pair(ColorPairs.STATUS_BAR)
-        self.color(theme)
+
+        border_theme = curses.color_pair(ColorPairs.WHITE_ON_BLACK)
+        theme = curses.color_pair(ColorPairs.POPUP_WINDOW)
+        title_theme = curses.color_pair(ColorPairs.POPUP_WINDOW_ACTIVE)
+
+        self.color(border_theme)
         self.win.clear()
-        self.win.border(0, 0, 0, 0, 0, 0, 0, 0)
-        self.win.addstr(1, 1, self.title, title_theme)
         self.win.noutrefresh()
+
+        self.container = Window(self.h - 2, self.w - 2, 1, 1, parent=self)
+        self.container.draw()
+        self.container.color(theme)
+        self.container.win.clear()
+        self.container.win.addstr(0, 1, self.title, title_theme)
+        self.container.win.noutrefresh()
 
     def draw_items(self) -> None:
         """Draw the items."""
@@ -94,7 +102,7 @@ class CheckedSelect(Window):
                 selected = False
 
             list_select_item = ListSelectItem(
-                self, f"{check_str}{item['text']}", l_item_cur_y, selected
+                self.container, f"{check_str}{item['text']}", l_item_cur_y, selected
             )
             list_select_item.draw()
             l_item_cur_y += 1
