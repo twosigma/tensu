@@ -81,7 +81,7 @@ class ColumnHeader(Window):
                 curses_COLS=curses.COLS,
             )
 
-            self.win.addstr(0, curr_x, column_name)
+            self.win.addstr(0, curr_x, column_name, self.theme)
             curr_x = curr_x + column_width
 
         self.color(self.theme)
