@@ -1,7 +1,8 @@
 # TENSU
 Tensu is a TUI (curses) based program for interacting with SensuGo Enterprises' monitoring pipeline and backend API. It aims to be a powerful tool for Infrastructure Engineers and System Administrators to interact with their monitoring and alerting infrastructure without leaving the comfort of their terminal.
 
-![screenshot](/misc/screenshot.jpg "Screenshot")
+![screenshot](/misc/screenshot-1.jpg "Screenshot")
+![screenshot](/misc/screenshot-2.jpg "Screenshot")
 
 # Installation
 ```
