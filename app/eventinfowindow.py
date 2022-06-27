@@ -364,8 +364,9 @@ class EventInfoWindow(Window):
         if not canceled:
             for item in items:
                 entry = item["text"]
-                reply = self.sensu_go_helper.delete_silence(entry)
-                self.logger.debug("clear_silence", reply=reply, entry=entry)
+                if item["checked"]:
+                    reply = self.sensu_go_helper.delete_silence(entry)
+                    self.logger.debug("clear_silence", reply=reply, entry=entry)
             # TODO: Show something?
 
     def re_run(self) -> None:
