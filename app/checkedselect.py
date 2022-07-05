@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from app.display import block_on_input, ResizeTerminalStack
+from app.display import block_on_input
 from app.listselectitem import ListSelectItem
 from app.actionbutton import ActionButton
 from app.colors import ColorPairs
@@ -24,8 +24,9 @@ import curses
 class CheckedSelect(Window):
     """A small window to mark selections."""
 
-    def __init__(self, stdscr, items: list, title: str) -> None:
+    def __init__(self, stdscr, items: list, title: str, parent) -> None:
         """Initialize the window"""
+        self.parent = parent
         self.control_button_min_width = 30
         self.items = items
         self.title = title
@@ -36,24 +37,29 @@ class CheckedSelect(Window):
             dim[2],
             dim[3],
             stdscr=stdscr,
-            auto_resize=True
+            auto_resize=True,
+            parent=parent,
         )
         self.selected_index = 0
         self.delayed_refresh = True
 
     def get_dimensions(self) -> Tuple[int, int, int, int]:
         """Return a Tuple of h, w, y, x."""
-        h = len(self.items) + 4
+        h = len(self.items) + 6
         w = (
             max(
-                len(sorted(self.items, key=lambda k: len(k["text"]), reverse=True)[0]['text']),
+                len(
+                    sorted(self.items, key=lambda k: len(k["text"]), reverse=True)[0][
+                        "text"
+                    ]
+                ),
                 len(self.title),
             )
-            + 8  # Because we add ' [X] ' in front of each item, +2 for border, +1 for EOL
+            + 10  # Because we add ' [X] ' in front of each item, +4 for border, +1 for EOL
         )
         w = max([w, self.control_button_min_width])
-        y = (int(curses.LINES / 2)) - (int(h / 2))
-        x = (int(curses.COLS / 2)) - (int(w / 2))
+        y = (int(self.parent.h / 2)) - (int(h / 2))
+        x = (int(self.parent.w / 2)) - (int(w / 2))
         return (h, w, y, x)
 
     def draw_after_resize(self) -> None:
@@ -63,17 +69,26 @@ class CheckedSelect(Window):
 
     def draw(self) -> None:
         self.h, self.w, self.y, self.x = self.get_dimensions()
+        self.clear_sub_windows()
         super().draw()
-        theme = curses.color_pair(ColorPairs.CONTROL_BAR_TOP)
-        title_theme = curses.color_pair(ColorPairs.STATUS_BAR)
-        self.color(theme)
-        self.win.border(0, 0, 0, 0, 0, 0, 0, 0)
-        self.win.addstr(1, 1, self.title, title_theme)
+
+        border_theme = curses.color_pair(ColorPairs.WHITE_ON_BLACK)
+        theme = curses.color_pair(ColorPairs.POPUP_WINDOW)
+        title_theme = curses.color_pair(ColorPairs.POPUP_WINDOW_ACTIVE)
+
+        self.color(border_theme)
+        self.win.clear()
         self.win.noutrefresh()
+
+        self.container = Window(self.h - 2, self.w - 2, 1, 1, parent=self)
+        self.container.draw()
+        self.container.color(theme)
+        self.container.win.clear()
+        self.container.win.addstr(0, 1, self.title, title_theme)
+        self.container.win.noutrefresh()
 
     def draw_items(self) -> None:
         """Draw the items."""
-        self.clear_sub_windows()
         l_item_cur_y = 2
         for index, item in enumerate(self.items):
             if item["checked"] == True:
@@ -87,16 +102,18 @@ class CheckedSelect(Window):
                 selected = False
 
             list_select_item = ListSelectItem(
-                self, f"{check_str}{item['text']}", l_item_cur_y, selected
+                self.container, f"{check_str}{item['text']}", l_item_cur_y, selected
             )
             list_select_item.draw()
             l_item_cur_y += 1
 
-        button_y = l_item_cur_y
-        action_button_accept = ActionButton(self, "A", "Accept", 1, button_y)
+        button_y = l_item_cur_y + 1
+        action_button_accept = ActionButton(
+            self.container, " A ", " Accept ", 1, button_y
+        )
         action_button_accept.draw()
         action_button_cancel = ActionButton(
-            self, "ESC", "Cancel", action_button_accept.w + 1, button_y
+            self.container, " ESC ", " Cancel ", action_button_accept.w + 1, button_y
         )
         action_button_cancel.draw()
 
@@ -132,5 +149,4 @@ class CheckedSelect(Window):
                 break
 
         curses.halfdelay(1)
-        ResizeTerminalStack.pop()
         return (canceled, self.items)

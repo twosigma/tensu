@@ -12,7 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from app.display import break_lines_on_max_width, get_max_lines, get_max_line_length, handle_terminal_resize, ResizeTerminalStack, StatusBarTopHeight, ControlBarHeight
+from app.display import (
+    break_lines_on_max_width,
+    get_max_lines,
+    get_max_line_length,
+    handle_terminal_resize,
+    StatusBarTopHeight,
+    ControlBarHeight,
+)
 from app.newsilencingentry import NewSilencingEntry
 from app.checkedselect import CheckedSelect
 from app.actionbutton import ActionButton
@@ -25,7 +32,6 @@ from app.datapane import DataPane
 from app.window import Window
 from app.utils import Utils
 from typing import Tuple
-import textwrap
 import curses
 import time
 
@@ -33,15 +39,25 @@ import time
 class EventInfoWindow(Window):
     """The window that shows up when you hit enter on an item."""
 
-    def __init__(self, stdscr, item: dict, sensugo: SensuGoHelper) -> None:
+    def __init__(
+        self, stdscr, item: dict, sensugo: SensuGoHelper, parent: Window
+    ) -> None:
         """Initialize the window."""
-
+        self.parent = parent
         dim = self.get_dimensions()
 
-        super().__init__(dim[0], dim[1], dim[2], dim[3], stdscr=stdscr, auto_resize=True)
+        super().__init__(
+            dim[0],
+            dim[1],
+            dim[2],
+            dim[3],
+            stdscr=stdscr,
+            auto_resize=True,
+            parent=parent,
+        )
         self.sensu_go_helper = sensugo
         self.delayed_refresh = True
-        self.theme = curses.color_pair(ColorPairs.STATUS_BAR)
+        self.theme = curses.color_pair(ColorPairs.POPUP_WINDOW)
         self.item = item
         self.next_update_time = datetime.utcnow() + timedelta(seconds=-1)
         self.output_pad_min_row = 0
@@ -49,9 +65,9 @@ class EventInfoWindow(Window):
 
     def get_dimensions(self) -> Tuple[int, int, int, int]:
         """Return Tuple of h, w, y, x"""
-        y = StatusBarTopHeight + ControlBarHeight
-        h = curses.LINES - y
-        w = curses.COLS
+        y = 0
+        h = self.parent.h
+        w = self.parent.w
         x = 0
         return (h, w, y, x)
 
@@ -153,52 +169,44 @@ class EventInfoWindow(Window):
         self.data_pane.draw()
 
         output_container_h = self.h - 5
-        output_container_w = int(self.w / 2)
-        
-        output = break_lines_on_max_width(
-                self.item["check"]["output"],
-                output_container_w - 1)
+        output_container_w = int(self.w / 2) - 1
 
-        self.logger.debug("alex", output=output)
+        output = break_lines_on_max_width(
+            self.item["check"]["output"], output_container_w - 1
+        )
+
         self.pad_h = get_max_lines(output) + 1
         self.pad_w = get_max_line_length(output) + 1
 
         draw_fake_bottom = False
         if self.pad_h > (output_container_h - 1):
-            output_container_h -= 2
+            output_container_h -= 1
             draw_fake_bottom = True
 
         self.output_container = Window(
-            output_container_h, output_container_w, 2, self.data_pane.w, parent=self
+            output_container_h, output_container_w, 3, self.data_pane.w, parent=self
         )
         self.output_container.delayed_refresh = True
         self.output_container.draw()
-        self.output_container.color(curses.color_pair(ColorPairs.GREY_ON_BLACK))
-
-        self.output_box = Textbox(self.output_container.win)
-        if draw_fake_bottom:
-            self.output_container.win.border(
-                0, 0, 0, " ", 0, 0, curses.ACS_VLINE, curses.ACS_VLINE
-            )
-        else:
-            self.output_container.win.border(0, 0, 0, 0, 0, 0, 0, 0)
+        self.output_container.color(curses.color_pair(ColorPairs.OUTPUT_WINDOW))
 
         self.output_container.win.noutrefresh()
 
         self.output_win = Window(
-            self.output_container.h - 1,
-            self.output_container.w - 1,
-            1,
-            1,
+            self.output_container.h,
+            self.output_container.w,
+            0,
+            0,
             parent=self.output_container,
         )
         self.output_win.draw()
-        self.output_win.color(curses.color_pair(ColorPairs.GREY_ON_BLACK))
+        self.output_win.win.clrtobot()
+        self.output_win.color(curses.color_pair(ColorPairs.OUTPUT_WINDOW))
         self.output_win.win.noutrefresh()
 
         if draw_fake_bottom:
             self.scroll_info_window = Window(
-                2,
+                1,
                 self.output_container.w,
                 self.output_container.h + 2,
                 self.data_pane.w,
@@ -206,19 +214,16 @@ class EventInfoWindow(Window):
             )
             self.scroll_info_window.delayed_refresh = True
             self.scroll_info_window.draw()
-            self.scroll_info_window.win.border(
-                0, 0, " ", 0, curses.ACS_VLINE, curses.ACS_VLINE, 0, 0
-            )
             self.scroll_info_window.win.addstr(
                 0,
-                1,
-                "--- Hit 'Space' for More ---".center(self.data_pane.w - 4),
-                curses.color_pair(ColorPairs.YELLOW_ON_BLACK),
+                0,
+                "--- Hit 'Space' for More ---".center(self.data_pane.w - 2),
+                curses.color_pair(ColorPairs.POPUP_WINDOW_ACTIVE),
             )
             self.scroll_info_window.win.noutrefresh()
 
         self.output_pad = curses.newpad(self.pad_h, self.pad_w)
-        self.output_pad.bkgd(curses.color_pair(ColorPairs.WHITE_ON_BLACK))
+        self.output_pad.bkgd(curses.color_pair(ColorPairs.OUTPUT_WINDOW))
         self.output_pad.addstr(0, 0, output)
 
         s_min_row, s_min_col = self.output_win.win.getbegyx()
@@ -234,6 +239,7 @@ class EventInfoWindow(Window):
     def draw_after_resize(self) -> None:
         self.draw()
         self.retrieve_and_draw()
+        curses.doupdate()
 
     def draw(self) -> None:
         """Draw the window."""
@@ -244,31 +250,22 @@ class EventInfoWindow(Window):
         self.y = dim[2]
         self.x = dim[3]
 
+        self.clear_sub_windows()
+
         super().draw()
+
         self.data_pane = DataPane(self.h - 5, int(self.w / 2), 2, 0, parent=self)
         self.color(self.theme)
-        self.win.border(
-            " ",
-            " ",
-            0,
-            0,
-            curses.ACS_HLINE,
-            curses.ACS_HLINE,
-            curses.ACS_HLINE,
-            curses.ACS_HLINE,
-        )
+        self.win.clrtobot()
         self.win.addstr(
-            1,
             0,
+            1,
             "Hit 'X' to Close Window".ljust(self.w - 1, " "),
-            curses.color_pair(ColorPairs.COLUMN_HEADER),
+            curses.color_pair(ColorPairs.POPUP_WINDOW),
         )
-
-        self.draw_buttons()
-
 
         self.win.noutrefresh()
-        self.clear_sub_windows()
+        self.draw_buttons()
 
     def draw_buttons(self) -> None:
         """Draw the buttons!"""
@@ -336,7 +333,7 @@ class EventInfoWindow(Window):
         self.logger.debug("resolve_check", reply=reply)
 
     def silence(self) -> None:
-        new_silencing_entry = NewSilencingEntry(self.stdscr, self.item)
+        new_silencing_entry = NewSilencingEntry(self.stdscr, self.item, self)
         new_silencing_entry.draw()
         canceled, silencing_entry, reason = new_silencing_entry.prompt()
         if not canceled:
@@ -354,15 +351,19 @@ class EventInfoWindow(Window):
         for item in self.item["check"]["silenced"]:
             s_list.append({"text": item, "checked": True})
         checked_select = CheckedSelect(
-            self.stdscr, s_list, "Select all entries you would like to clear."
+            self.stdscr,
+            s_list,
+            "Select all entries you would like to clear.",
+            parent=self,
         )
         checked_select.draw()
         canceled, items = checked_select.select()
         if not canceled:
             for item in items:
                 entry = item["text"]
-                reply = self.sensu_go_helper.delete_silence(entry)
-                self.logger.debug("clear_silence", reply=reply, entry=entry)
+                if item["checked"]:
+                    reply = self.sensu_go_helper.delete_silence(entry)
+                    self.logger.debug("clear_silence", reply=reply, entry=entry)
             # TODO: Show something?
 
     def re_run(self) -> None:
@@ -387,8 +388,7 @@ class EventInfoWindow(Window):
             self.update_item()
             curses.doupdate()
             key = self.stdscr.getch()
-            if key in (ord("x"), ord("X"), curses.ascii.ESC):
-                ResizeTerminalStack.pop()
+            if key in (ord("x"), ord("X"), curses.ascii.ESC, curses.ascii.NL):
                 break
             if key == ord(" "):
                 self.scroll_output_pad()

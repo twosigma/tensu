@@ -13,14 +13,14 @@
 # limitations under the License.
 
 from app.defaults import InternalDefaults
+from typing import Tuple
 import structlog
 import curses
 
 StatusBarTopHeight = 1
-ControlBarHeight = 3
+ControlBarHeight = 2
 StatusBarBottomHeight = 1
-ActionBarBottomHeight = 1
-ColumnHeaderHeight = 1
+ActionBarBottomHeight = 2
 
 # Column Name, Minimum Width, Grow Percent
 EventHeaders = (
@@ -32,13 +32,12 @@ EventHeaders = (
 )
 # Column Name, Minimum Width, Grow Percent
 SilencedHeaders = (
-    ("Creator", 20, 0.05),
+    ("Creator", 20, 0.10),
     ("Silencing Entry", 35, 0.60),
-    ("Reason", 50, 0.30),
+    ("Reason", 3, 0.30),
     ("Begins", 19, 0),
 )
 
-ResizeTerminalStack = []
 
 def break_lines_on_max_width(text: str, max_w: int) -> str:
     """Formats a string so no line of text is longer than max_width
@@ -51,11 +50,12 @@ def break_lines_on_max_width(text: str, max_w: int) -> str:
             new.append(line)
         else:
             s = 0
-            while line[s:max_w+s] != '':
-                new.append(line[s:max_w+s])
-                s+=max_w
+            while line[s : max_w + s] != "":
+                new.append(line[s : max_w + s])
+                s += max_w
 
     return "\n".join(new)
+
 
 def get_max_line_length(text: str) -> int:
     """Return the longest line in a given multiline string.
@@ -82,9 +82,8 @@ def get_max_lines(text: str) -> int:
     return len(text.split("\n"))
 
 
-def header_pre_render(header_infos):
+def header_pre_render(header_infos: Tuple[str, int, float], available_width: int):
     """Return the available width for drawing columns correctly."""
-    available_width = curses.COLS - 1
     for h in header_infos:
         if h[2] == 0:
             available_width -= h[1]

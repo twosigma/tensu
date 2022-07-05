@@ -63,7 +63,16 @@ class ColorPairs:
     WHITE_ON_BLACK = 143
     SILENCED = 144
     SILENCED_SELECTED = 145
-    SENSU_GREEN = 146
+    CHROME = 146
+    CONTEXT_HOTKEY = 147
+    CONTEXT_TEXT = 148
+    CONTEXT_HOTKEY_SELECTED = 149
+    CONTEXT_TEXT_SELECTED = 150
+    POPUP_WINDOW = 151
+    DATAPANE_LABEL = 152
+    DATAPANE_VALUE = 153
+    POPUP_WINDOW_ACTIVE = 154
+    OUTPUT_WINDOW = 155
 
     @staticmethod
     def set_color_pairs() -> None:
@@ -73,7 +82,7 @@ class ColorPairs:
         curses.init_pair(ColorPairs.RED_ON_BLACK, 196, 232)
         curses.init_pair(ColorPairs.GREEN_ON_BLACK, 40, 232)
         curses.init_pair(ColorPairs.YELLOW_ON_BLACK, 226, 232)
-        curses.init_pair(ColorPairs.STATUS_BAR_BOTTOM, 232, 255)
+        curses.init_pair(ColorPairs.STATUS_BAR_BOTTOM, 255, 232)
         curses.init_pair(ColorPairs.GREY_ON_BLACK, 250, 232)
         curses.init_pair(ColorPairs.WHITE_ON_BLACK, 255, 232)
         curses.init_pair(ColorPairs.LAST_UPDATED_TEXT, 255, 232)
@@ -81,20 +90,22 @@ class ColorPairs:
         curses.init_pair(ColorPairs.LOGO, 255, 232)
         curses.init_pair(ColorPairs.VERSION, 40, 232)
         curses.init_pair(ColorPairs.ERROR_STATUS_BAR, 196, 255)
-        curses.init_pair(ColorPairs.CONTROL_BAR_TOP, 235, 233)
+        curses.init_pair(ColorPairs.CONTROL_BAR_TOP, 235, 232)
         curses.init_pair(ColorPairs.STATUS_BAR, 79, 232)
-        curses.init_pair(ColorPairs.ACTION_BAR_BOTTOM, 255, 232)
+        curses.init_pair(ColorPairs.ACTION_BAR_BOTTOM, 255, 23)
         curses.init_pair(ColorPairs.TEXT_INPUT, 255, 0)
         curses.init_pair(ColorPairs.TEXT_INPUT, 255, 0)
         curses.init_pair(ColorPairs.FETCH_STATUS, 6, 232)
-        curses.init_pair(ColorPairs.BUTTON_HOTKEY, 232, 79)
-        curses.init_pair(ColorPairs.BUTTON_TEXT, 243, 235)
+        curses.init_pair(ColorPairs.BUTTON_HOTKEY, 248, 234)
+        curses.init_pair(ColorPairs.BUTTON_TEXT, 243, 234)
         curses.init_pair(ColorPairs.ACTION_HOTKEY, 232, 79)
         curses.init_pair(ColorPairs.ACTION_TEXT, 243, 235)
         curses.init_pair(ColorPairs.SILENCED, 238, 232)
         curses.init_pair(ColorPairs.SILENCED_SELECTED, 79, 232)
-        curses.init_pair(ColorPairs.BUTTON_TEXT_SELECTED, 251, 237)
-        curses.init_pair(ColorPairs.BUTTON_HOTKEY_SELECTED, 232, 46)
+        curses.init_pair(ColorPairs.COLUMN_HEADER, 253, 235)
+        curses.init_pair(ColorPairs.BUTTON_TEXT_SELECTED, 255, 23)
+        curses.init_pair(ColorPairs.BUTTON_HOTKEY_SELECTED, 255, 23)
+        curses.init_pair(ColorPairs.CHROME, 232, 23)
         curses.init_pair(ColorPairs.NAMESPACE_LABEL, 232, 153)
         curses.init_pair(ColorPairs.DATA_VIEW, 255, 232)
         curses.init_pair(ColorPairs.EVENT_FAILING, 255, 160)
@@ -108,12 +119,19 @@ class ColorPairs:
         curses.init_pair(ColorPairs.EVENT_HOSTNAME_SELECTED, 159, 237)
         curses.init_pair(ColorPairs.ITEM_OUTPUT_SELECTED, 255, 237)
         curses.init_pair(ColorPairs.ACTION_HOTKEY_SELECTED, 232, 46)
-        curses.init_pair(ColorPairs.ACTION_TEXT_SELECTED, 121, 235)
-        curses.init_pair(ColorPairs.SILENCED_NAME, 105, 232)
-        curses.init_pair(ColorPairs.SILENCED_BY, 31, 232)
-        curses.init_pair(ColorPairs.SILENCED_NAME_SELECTED, 232, 14)
-        curses.init_pair(ColorPairs.SILENCED_BY_SELECTED, 31, 237)
+        curses.init_pair(ColorPairs.ACTION_TEXT_SELECTED, 122, 235)
+        curses.init_pair(ColorPairs.SILENCED_NAME, 240, 232)
+        curses.init_pair(ColorPairs.SILENCED_BY, 68, 232)
+        curses.init_pair(ColorPairs.SILENCED_NAME_SELECTED, 255, 237)
+        curses.init_pair(ColorPairs.SILENCED_BY_SELECTED, 159, 237)
         curses.init_pair(ColorPairs.ITEM_LABEL, 189, 232)
         curses.init_pair(ColorPairs.ITEM_LABEL_SELECTED, 189, 237)
-        curses.init_pair(ColorPairs.COLUMN_HEADER, 253, 238)
-        curses.init_pair(ColorPairs.SENSU_GREEN, 232, 79)
+        curses.init_pair(ColorPairs.CONTEXT_HOTKEY, 35, 232)
+        curses.init_pair(ColorPairs.CONTEXT_HOTKEY_SELECTED, 49, 232)
+        curses.init_pair(ColorPairs.CONTEXT_TEXT, 244, 232)
+        curses.init_pair(ColorPairs.CONTEXT_TEXT_SELECTED, 255, 232)
+        curses.init_pair(ColorPairs.POPUP_WINDOW, 255, 234)
+        curses.init_pair(ColorPairs.POPUP_WINDOW_ACTIVE, 229, 234)
+        curses.init_pair(ColorPairs.DATAPANE_LABEL, 49, 234)
+        curses.init_pair(ColorPairs.DATAPANE_VALUE, 255, 234)
+        curses.init_pair(ColorPairs.OUTPUT_WINDOW, 245, 234)

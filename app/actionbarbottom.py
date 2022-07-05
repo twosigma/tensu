@@ -24,7 +24,12 @@ class ActionBarBottom(Window):
     def __init__(self) -> None:
         """Initialize the window."""
 
-        super().__init__(ActionBarBottomHeight, curses.COLS, curses.LINES - 2, 0)
+        super().__init__(
+            ActionBarBottomHeight,
+            curses.COLS,
+            curses.LINES - (ActionBarBottomHeight + 1),
+            0,
+        )
         self.delayed_refresh = True
 
     def draw(self) -> None:
@@ -32,3 +37,4 @@ class ActionBarBottom(Window):
         super().draw()
         theme = curses.color_pair(ColorPairs.ACTION_BAR_BOTTOM)
         self.color(theme)
+        self.win.noutrefresh()

@@ -15,24 +15,25 @@
 from app.colors import ColorPairs
 from app.window import Window
 from app.utils import Utils
+from typing import Tuple
 import curses
 
 
 class DataPane(Window):
     """The window to display event information."""
 
-    def __init__(self, w: int, h: int, y: int, x: int, parent: Window = None) -> None:
+    def __init__(self, h: int, w: int, y: int, x: int, parent: Window = None) -> None:
         """Initialize the datapane."""
 
-        super().__init__(w, h, y, x, parent=parent)
+        super().__init__(h, w, y, x, parent=parent)
         self.delayed_refresh = True
-        self.label_theme = curses.color_pair(ColorPairs.ITEM_ROW_SELECTED)
-        self.value_theme = curses.color_pair(ColorPairs.WHITE_ON_BLACK)
+        self.label_theme = curses.color_pair(ColorPairs.DATAPANE_LABEL)
+        self.value_theme = curses.color_pair(ColorPairs.DATAPANE_VALUE)
         self.items = []
         self.offset = 0
         self.max_item_y = self.h
 
-    def add_item(self, item: dict) -> None:
+    def add_item(self, item: Tuple[str, str]) -> None:
         """Add an item to the datapane."""
 
         self.items.append(item)
@@ -69,7 +70,7 @@ class DataPane(Window):
 
         prev_win.draw()
         next_win.draw()
-        theme = curses.color_pair(ColorPairs.YELLOW_ON_BLACK)
+        theme = curses.color_pair(ColorPairs.POPUP_WINDOW_ACTIVE)
         is_next = self.items[self.offset + self.max_item_y :] != []
         is_prev = self.offset != 0
 
@@ -89,7 +90,7 @@ class DataPane(Window):
         self.clear_sub_windows()
         self.get_label_rjust_size()
         super().draw()
-        self.win.clear()
+        self.win.clrtobot()
         self.draw_page_buttons()
         max_y = self.max_item_y
         max_x = self.w - 2
@@ -122,3 +123,4 @@ class DataPane(Window):
                 blank.win.move(0, 0)
                 blank.win.clrtoeol()
                 blank.win.noutrefresh()
+        self.win.noutrefresh()

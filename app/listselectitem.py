@@ -37,6 +37,7 @@ class ListSelectItem(Window):
         """Draw the window."""
 
         super().draw()
+        self.win.clrtoeol()
         if self.selected:
             theme = curses.color_pair(ColorPairs.BUTTON_TEXT_SELECTED)
         else:

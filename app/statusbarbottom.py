@@ -34,12 +34,25 @@ class StatusBarBottom(Window):
         self.fetch_theme = curses.color_pair(ColorPairs.FETCH_STATUS)
         super().draw()
 
+    def _s_vi(self) -> int:
+        return self.state.get("status", {}).get("viewable_items", 0)
+
+    def _s_ti(self) -> int:
+        return self.state.get("status", {}).get("total_items", 0)
+
+    def _s_fi(self) -> int:
+        return self.state.get("status", {}).get("filtered_items", 0)
+
+    def _s_i(self) -> int:
+        return self.state.get("status", {}).get("index", 0)
+
     def get_text_state(self) -> str:
         """Combine status and fetch text."""
 
         status_text = self.state.get("status_message", "")
         fetch_text = self.state.get("fetch_status", "")
-        return f"{status_text}{fetch_text}"
+        status_items_text = f"{self._s_vi()}{self._s_ti()}{self._s_fi()}{self._s_i()}"
+        return f"{status_text}{fetch_text}{status_items_text}"
 
     def update(self) -> None:
         """If status message has changed then redraw."""
@@ -52,7 +65,10 @@ class StatusBarBottom(Window):
         """Draw the window."""
 
         self.color(self.base_theme)
-        status_text = self.state.get("status_message", "")
+
+        message_text = self.state.get("status_message", "")
+        status_text = f"[{self._s_i()}/{self._s_vi()}] (Total: {self._s_ti()}, Filtered: {self._s_fi()}) {message_text}"
+
         fetch_text = self.state.get("fetch_status", "")
 
         max_status_len = ((curses.COLS - 1) - len(fetch_text)) + 1

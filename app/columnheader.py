@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from app.display import ColumnHeaderHeight, StatusBarTopHeight, ControlBarHeight
+from app.display import StatusBarTopHeight, ControlBarHeight
 from app.display import header_pre_render
 from app.colors import ColorPairs
 from app.window import Window
@@ -23,11 +23,9 @@ import curses
 class ColumnHeader(Window):
     """A columnheader!"""
 
-    def __init__(self) -> None:
+    def __init__(self, parent) -> None:
         """Initialize the window."""
-        super().__init__(
-            ColumnHeaderHeight, curses.COLS, StatusBarTopHeight + ControlBarHeight, 0
-        )
+        super().__init__(1, parent.w, 0, 0, parent=parent)
         self.delayed_refresh = True
         self.theme = curses.color_pair(ColorPairs.COLUMN_HEADER)
 
@@ -54,7 +52,7 @@ class ColumnHeader(Window):
         # sized by their min-width or grow-pct. If they will be
         # sized by min-width then reduce the available_width for
         # other columns when using grow-pct.
-        available_width = header_pre_render(self.header_infos)
+        available_width = header_pre_render(self.header_infos, self.w - 1)
 
         # Render
         # Second run through all the columns and actually draw
@@ -83,7 +81,7 @@ class ColumnHeader(Window):
                 curses_COLS=curses.COLS,
             )
 
-            self.win.addstr(0, curr_x, column_name)
+            self.win.addstr(0, curr_x, column_name, self.theme)
             curr_x = curr_x + column_width
 
         self.color(self.theme)

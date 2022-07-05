@@ -14,8 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from app.display import handle_terminal_resize, EventHeaders, SilencedHeaders, ResizeTerminalStack
+from app.display import (
+    handle_terminal_resize,
+)
 from app.defaults import ViewOptions, InternalDefaults, AuthenticationOptions, Filters
+from app.silencedinfowindow import SilencedInfoWindow
+from app.dataviewcontainer import DataViewContainer
 from datetime import datetime, timezone, timedelta
 from app.resource_handler import ResourceHandler
 from app.eventinfowindow import EventInfoWindow
@@ -23,10 +27,10 @@ from app.actionbarbottom import ActionBarBottom
 from app.statusbarbottom import StatusBarBottom
 from app.displaymessage import DisplayMessage
 from app.controlbartop import ControlBarTop
+from app.contextbutton import ContextButton
 from app.controlbutton import ControlButton
 from structlog.stdlib import LoggerFactory
 from app.statusbartop import StatusBarTop
-from app.actionbutton import ActionButton
 from app.columnheader import ColumnHeader
 from app.loginprompt import LoginPrompt
 from app.sensu_go import SensuGoHelper
@@ -90,7 +94,6 @@ class Tensu:
         self.resource_handler = ResourceHandler(self.state, self.sensu_go_helper)
         self.resource_handler.set_callable(self.update_view)
         self.resource_handler.set_fetch_status_callable(self.update_fetch_status)
-        ResizeTerminalStack.append(self.make_windows)
 
     def configure_logger(self):
         """Configures the application logger
@@ -104,8 +107,10 @@ class Tensu:
                 structlog.stdlib.filter_by_level,
                 structlog.stdlib.add_logger_name,
                 structlog.stdlib.add_log_level,
+                structlog.stdlib.PositionalArgumentsFormatter(),
+                structlog.processors.TimeStamper(fmt="iso"),
                 structlog.processors.format_exc_info,
-                structlog.processors.JSONRenderer(indent=2, sort_keys=True),
+                structlog.processors.JSONRenderer(),
             ],
             logger_factory=structlog.stdlib.LoggerFactory(),
         )
@@ -115,8 +120,6 @@ class Tensu:
         else:
             logger.setLevel(logging.INFO)
         fh = logging.FileHandler(self.debug_log_file)
-        fmt = logging.Formatter("%(asctime)s  %(name)s: %(levelname)s - %(message)s")
-        fh.setFormatter(fmt)
         fh.setLevel(logging.DEBUG)
         logger.addHandler(fh)
         self.logger = structlog.get_logger(InternalDefaults.APPNAME)
@@ -144,10 +147,9 @@ class Tensu:
 
         self.make_status_bar_top()
         self.make_control_bar()
-        self.make_column_header()
-        self.make_status_bar_bottom()
         self.make_data_view()
         self.make_action_bar_bottom()
+        self.make_status_bar_bottom()
         self.resource_handler.force_call()
 
     def max_events_to_fetch(self):
@@ -158,8 +160,8 @@ class Tensu:
         the viewport.
         """
 
-        if self.data_view.h > self.state["max_fetch_events"]:
-            return self.data_view.h
+        if self.data_view.container.h > self.state["max_fetch_events"]:
+            return self.data_view.container.h
         return self.state["max_fetch_events"]
 
     def get_state(self):
@@ -195,7 +197,7 @@ class Tensu:
         """Moves the event item cursor up or down a full page."""
 
         # 0 = up, 1 = down
-        data_view_h = self.data_view.h - 1
+        data_view_h = self.data_view.container.h - 1
         if direction == 0:
             self.move_index(-data_view_h)
         else:
@@ -213,7 +215,6 @@ class Tensu:
 
         self.state["view"] = view_option
         self.make_control_bar()
-        self.make_column_header()
         self.make_action_bar_bottom()
         self.data_view.offset = 0
         self.data_view.index = 0
@@ -321,6 +322,8 @@ class Tensu:
         if ch == 10:  # Enter
             if self.view_state_is_events():
                 self.show_event_info()
+            if self.view_state_is_silenced():
+                self.show_silenced_info()
 
         if ch == curses.KEY_DOWN or ch == ord("j"):
             self.move_index(1)
@@ -328,13 +331,27 @@ class Tensu:
         if ch == curses.KEY_UP or ch == ord("k"):
             self.move_index(-1)
 
+    def show_silenced_info(self):
+        """Show a modal window with additional information.
+
+        When enter is pressed on a silenced item.
+        """
+        w = SilencedInfoWindow(
+            self.s, self.data_view.selected_item, self.sensu_go_helper, self.data_view
+        )
+        w.draw()
+        w.prompt()
+        self.make_windows()
+
     def show_event_info(self):
         """Shows a modal window with additional information.
 
         When enter is pressed on an event.
         """
 
-        w = EventInfoWindow(self.s, self.data_view.selected_item, self.sensu_go_helper)
+        w = EventInfoWindow(
+            self.s, self.data_view.selected_item, self.sensu_go_helper, self.data_view
+        )
         w.draw()
         w.input_loop()
         self.make_windows()
@@ -344,7 +361,7 @@ class Tensu:
 
         self.action_bar_bottom = ActionBarBottom()
         self.action_bar_bottom.draw()
-        self.action_button_change_namespace = ActionButton(
+        self.action_button_change_namespace = ContextButton(
             self.action_bar_bottom,
             " Ctrl+P ",
             " Switch Namespace ",
@@ -355,17 +372,17 @@ class Tensu:
         self.action_button_change_namespace.draw(False)
 
         if self.view_state_is_events():
-            self.action_button_host_regex = ActionButton(
-                self.action_bar_bottom, " Ctrl+F ", " Host Regex ", 0, 0
+            self.action_button_host_regex = ContextButton(
+                self.action_bar_bottom, " Ctrl+F ", " Host Regex ", 1, 0
             )
-            self.action_button_check_regex = ActionButton(
+            self.action_button_check_regex = ContextButton(
                 self.action_bar_bottom,
                 " Ctrl+N ",
                 " CheckName Regex ",
                 self.action_button_host_regex.x + self.action_button_host_regex.w,
                 0,
             )
-            self.action_button_output_regex = ActionButton(
+            self.action_button_output_regex = ContextButton(
                 self.action_bar_bottom,
                 " Ctrl+O ",
                 " CheckOutput Regex ",
@@ -383,10 +400,10 @@ class Tensu:
             )
 
         if self.view_state_is_silenced():
-            self.action_button_silenced_name_regex = ActionButton(
-                self.action_bar_bottom, " Ctrl+F ", " Silencing Entry Regex ", 0, 0
+            self.action_button_silenced_name_regex = ContextButton(
+                self.action_bar_bottom, " Ctrl+F ", " Silencing Entry Regex ", 1, 0
             )
-            self.action_button_creator_regex = ActionButton(
+            self.action_button_creator_regex = ContextButton(
                 self.action_bar_bottom,
                 " Ctrl+O ",
                 " Creator Regex ",
@@ -394,7 +411,7 @@ class Tensu:
                 + self.action_button_silenced_name_regex.w,
                 0,
             )
-            self.action_button_reason_regex = ActionButton(
+            self.action_button_reason_regex = ContextButton(
                 self.action_bar_bottom,
                 " Ctrl+R ",
                 " Reason Regex ",
@@ -410,18 +427,6 @@ class Tensu:
             self.action_button_reason_regex.draw(
                 bool(self.get_filter_value(Filters.SILENCED_REASON_REGEX))
             )
-
-    def make_column_header(self):
-        """Draws the column headers for events/silenced items."""
-
-        self.column_header = ColumnHeader()
-        if self.view_state_is_events():
-            headers = EventHeaders
-        if self.view_state_is_silenced():
-            headers = SilencedHeaders
-
-        self.column_header.set_headers(headers)
-        self.column_header.draw()
 
     def make_control_bar(self):
         """Draws the 'ControlBar' with buttons for switching views."""
@@ -458,9 +463,10 @@ class Tensu:
 
     def make_data_view(self):
         """Draws the part of the screen that shows all of the items."""
-
-        self.data_view = DataView()
-        self.data_view.draw()
+        self.data_view_container = DataViewContainer(self.state)
+        self.data_view_container.root_resize_func = self.resize_term
+        self.data_view_container.draw()
+        self.data_view = self.data_view_container.data_view
 
     def view_state_is_events(self):
         """Returns True when the view is ALL or NOT_PASSING."""
@@ -524,19 +530,26 @@ class Tensu:
         """Updates the data view when there are new items."""
 
         if self.view_state_is_events():
-            headers = EventHeaders
             items = self.apply_filters(items)
         if self.view_state_is_silenced():
             items = self.apply_filters(items)
-            headers = SilencedHeaders
 
         self.selected_index = self.data_view.render_view(
-            items, self.selected_index, self.state["view"], headers
+            items,
+            self.selected_index,
         )
 
-        self.update_status(
-            f"[{self.selected_index+1+self.data_view.offset}/{self.resource_handler.viewable_items_count}] (Total Events: {len(self.resource_handler.items)})"
+        self.state.setdefault("status", {})["index"] = (
+            self.selected_index + 1 + self.data_view.offset
         )
+        self.state["status"][
+            "viewable_items"
+        ] = self.resource_handler.viewable_items_count
+        self.state["status"]["total_items"] = len(self.resource_handler.items)
+        self.state["status"]["filtered_items"] = len(items)
+
+        self.update_status("")
+
         self.status_bar_top.draw(self.resource_handler.last_updated)
 
     def fetch_data(self):
@@ -562,9 +575,6 @@ class Tensu:
                 pass
 
             self.resource_handler.get_resource_items(**kwargs)
-            self.update_status(
-                f"[{self.selected_index+1+self.data_view.offset}/{self.resource_handler.viewable_items_count}] (Total Events: {len(self.resource_handler.items)})"
-            )
 
         except requests.RequestException as e:
             self.logger.exception(
@@ -603,7 +613,7 @@ class Tensu:
         """Checks authentication.
 
         If there is no access token, or the access token is invalid or expired,
-        and if there is no refresh token, then re-authenticate with user credentials 
+        and if there is no refresh token, then re-authenticate with user credentials
         to receive a new access token and refresh token.
 
         If there is an access token, check if valid, if it expires soon then request
@@ -760,15 +770,24 @@ class Tensu:
             except KeyboardInterrupt:
                 self.resource_handler.kill()
                 raise
-            except:
-                self.logger.exception(
-                    "Error in main loop. Your terminal dimensions may be too small!"
-                )
+
+            except curses.error:
                 DisplayMessage(
                     stdscr,
                     f"Error!\nCheck {self.debug_log_file}\nYour terminal dimensions may be too small!",
                 ).draw()
-                ResizeTerminalStack = [self.make_windows]
+                self.logger.exception(
+                    "Tensu encountered an error when trying to draw the screen. Your terminal dimensions may be too small!"
+                )
+
+            except Exception:
+                DisplayMessage(
+                    stdscr,
+                    f"Tensu encountered an unhandled exception. Press any key to continue.\nYou can report bugs to https://github.com/twosigma/tensu\n\n{traceback.format_exc()}",
+                ).draw()
+                self.logger.exception(
+                    "Tensu encountered an unhandled exception. You can report bugs to https://github.com/twosigma/tensu."
+                )
 
 
 if __name__ == "__main__":

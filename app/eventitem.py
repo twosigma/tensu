@@ -35,7 +35,7 @@ class EventItem(Window):
         """Initialize the window."""
 
         height = 1
-        width = curses.COLS
+        width = parent.w
         x = 0
         self.event = event
         self.selected = selected
@@ -102,7 +102,7 @@ class EventItem(Window):
         curr_x = 0
 
         # Pre-Render
-        available_width = header_pre_render(self.header_infos)
+        available_width = header_pre_render(self.header_infos, self.w - 1)
 
         # Render
         add_back_pct = 0

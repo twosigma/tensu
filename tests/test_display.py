@@ -37,7 +37,7 @@ class DisplayTests(unittest.TestCase):
     @mock.patch(target="curses.COLS", new=curses_mock.COLS, create=True)
     def test_header_pre_render(self):
         headers = (("FooBar", 10, 0), ("Baz", 60, 0.90), ("Bar", 10, 0.10))
-        val = display.header_pre_render(headers)
+        val = display.header_pre_render(headers, 80 - 1)
         assert val == 59
 
     @mock.patch("structlog.get_logger", mock.MagicMock())

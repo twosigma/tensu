@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from app.display import ResizeTerminalStack, handle_terminal_resize
+from app.display import handle_terminal_resize
 from app.defaults import InternalDefaults
 import structlog
 import curses
@@ -22,7 +22,14 @@ class Window:
     """A base class for making a new curses window"""
 
     def __init__(
-        self, height: int, width: int, y: int, x: int, stdscr=None, parent=None, auto_resize=False
+        self,
+        height: int,
+        width: int,
+        y: int,
+        x: int,
+        stdscr=None,
+        parent=None,
+        auto_resize=False,
     ) -> None:
         """Initialize the Window object."""
 
@@ -41,8 +48,7 @@ class Window:
         self.nrows = 0
         self.ncols = 0
         self.set_max_yx()
-        if auto_resize:
-            ResizeTerminalStack.append(self.draw_after_resize)
+        self.root_resize_func = None
 
     def set_max_yx(self) -> None:
         """Convenience function."""
@@ -53,24 +59,29 @@ class Window:
         """Convenience function."""
         if self.stdscr:
             if curses.is_term_resized(self.nrows, self.ncols):
-                self.handle_resize()
+                handle_terminal_resize(self.stdscr)
                 self.set_max_yx()
+                self.handle_resize()
                 return True
             return False
 
     def handle_resize(self) -> None:
-        handle_terminal_resize(self.stdscr)
-        for f in ResizeTerminalStack:
-            f()
-            self.logger.debug("Window resize", msg=f"Called {f}")
+        self.logger.debug(
+            "auto_resize", name=self.__class__.__name__, handle_resize_called=True
+        )
+        if self.parent:
+            self.parent.handle_resize()
+        elif self.root_resize_func:
+            self.root_resize_func()
+
+        self.draw_after_resize()
 
     def draw_after_resize(self) -> None:
-        """ Override me in Child class. """
+        """Override me in Child class."""
         pass
 
     def clear_sub_windows(self) -> None:
         """Forget about all our subwindows."""
-
         self.subwindows = []
 
     def draw(self) -> None:
