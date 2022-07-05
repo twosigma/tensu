@@ -463,9 +463,8 @@ class Tensu:
 
     def make_data_view(self):
         """Draws the part of the screen that shows all of the items."""
-        if not getattr(self, "data_view_container", False):
-            self.data_view_container = DataViewContainer(self.state)
-            self.data_view_container.root_resize_func = self.resize_term
+        self.data_view_container = DataViewContainer(self.state)
+        self.data_view_container.root_resize_func = self.resize_term
         self.data_view_container.draw()
         self.data_view = self.data_view_container.data_view
 
@@ -540,9 +539,17 @@ class Tensu:
             self.selected_index,
         )
 
-        self.update_status(
-            f"[{self.selected_index+1+self.data_view.offset}/{self.resource_handler.viewable_items_count}] (Total Events: {len(self.resource_handler.items)})"
+        self.state.setdefault("status", {})["index"] = (
+            self.selected_index + 1 + self.data_view.offset
         )
+        self.state["status"][
+            "viewable_items"
+        ] = self.resource_handler.viewable_items_count
+        self.state["status"]["total_items"] = len(self.resource_handler.items)
+        self.state["status"]["filtered_items"] = len(items)
+
+        self.update_status("")
+
         self.status_bar_top.draw(self.resource_handler.last_updated)
 
     def fetch_data(self):
@@ -568,9 +575,6 @@ class Tensu:
                 pass
 
             self.resource_handler.get_resource_items(**kwargs)
-            self.update_status(
-                f"[{self.selected_index+1+self.data_view.offset}/{self.resource_handler.viewable_items_count}] (Total Events: {len(self.resource_handler.items)})"
-            )
 
         except requests.RequestException as e:
             self.logger.exception(
@@ -721,7 +725,7 @@ class Tensu:
         self.check_default_namespace()
         self.fetch_data()
         curses.doupdate()
-        curses.napms(5)
+        curses.napms(10)
 
     def main(self, stdscr):
         """Entrypoint of the application.
@@ -766,14 +770,24 @@ class Tensu:
             except KeyboardInterrupt:
                 self.resource_handler.kill()
                 raise
-            except:
-                self.logger.exception(
-                    "Error in main loop. Your terminal dimensions may be too small!"
-                )
+
+            except curses.error:
                 DisplayMessage(
                     stdscr,
                     f"Error!\nCheck {self.debug_log_file}\nYour terminal dimensions may be too small!",
                 ).draw()
+                self.logger.exception(
+                    "Tensu encountered an error when trying to draw the screen. Your terminal dimensions may be too small!"
+                )
+
+            except Exception:
+                DisplayMessage(
+                    stdscr,
+                    f"Tensu encountered an unhandled exception. Press any key to continue.\nYou can report bugs to https://github.com/twosigma/tensu\n\n{traceback.format_exc()}",
+                ).draw()
+                self.logger.exception(
+                    "Tensu encountered an unhandled exception. You can report bugs to https://github.com/twosigma/tensu."
+                )
 
 
 if __name__ == "__main__":

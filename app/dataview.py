@@ -87,8 +87,6 @@ class DataView(Window):
         index: int,
     ) -> int:
         """Draw the list items."""
-        if len(items) == 0:
-            return index
 
         self.index = index
         index_set = index
@@ -158,7 +156,9 @@ class DataView(Window):
                 selected = False
 
             if self.state["view"] == ViewOptions.SILENCED:
-                e_item = SilencedItem(item, curr_y, self.container, SilencedHeaders, selected)
+                e_item = SilencedItem(
+                    item, curr_y, self.container, SilencedHeaders, selected
+                )
             else:
                 e_item = EventItem(item, curr_y, self.container, EventHeaders, selected)
             e_item.draw()
@@ -166,12 +166,15 @@ class DataView(Window):
             i += 1
 
         if len(viewable_items) < self.max_items:
-            #for i in range(len(viewable_items) + 1, self.container.h):
+            # for i in range(len(viewable_items) + 1, self.container.h):
             for i in range(len(viewable_items), self.container.h):
                 blank = Window(1, self.w, i, 0, parent=self.container)
                 blank.draw()
                 blank.win.move(0, 0)
                 blank.win.clrtoeol()
                 blank.win.noutrefresh()
+
+        if len(items) == 0:
+            index_set = 0
 
         return index_set

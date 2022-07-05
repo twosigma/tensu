@@ -32,7 +32,6 @@ from app.datapane import DataPane
 from app.window import Window
 from app.utils import Utils
 from typing import Tuple
-import textwrap
 import curses
 import time
 
@@ -190,8 +189,6 @@ class EventInfoWindow(Window):
         self.output_container.delayed_refresh = True
         self.output_container.draw()
         self.output_container.color(curses.color_pair(ColorPairs.OUTPUT_WINDOW))
-
-        self.output_box = Textbox(self.output_container.win)
 
         self.output_container.win.noutrefresh()
 
@@ -391,7 +388,7 @@ class EventInfoWindow(Window):
             self.update_item()
             curses.doupdate()
             key = self.stdscr.getch()
-            if key in (ord("x"), ord("X"), curses.ascii.ESC):
+            if key in (ord("x"), ord("X"), curses.ascii.ESC, curses.ascii.NL):
                 break
             if key == ord(" "):
                 self.scroll_output_pad()

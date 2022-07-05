@@ -14,7 +14,6 @@
 
 from datetime import datetime
 from typing import Any
-import textwrap
 import time
 
 
@@ -40,15 +39,12 @@ class Utils:
         >>> Utils.truncate(s3, 14)
         'some very'
         """
+        flattened = " ".join(text.strip().split())
 
-        if " " not in text:
-            if len(text) > max_width:
-                value = text[0 : max_width - 3] + "..."
-            else:
-                value = text
+        if len(flattened) > max_width:
+            return flattened[0 : max_width - 3] + "..."
         else:
-            value = textwrap.shorten(text, max_width)
-        return value.replace("\n", " ")
+            return flattened
 
     @staticmethod
     def sensu_dict_get(d: dict, item: str, default: Any) -> Any:

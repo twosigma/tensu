@@ -108,7 +108,9 @@ class CheckedSelect(Window):
             l_item_cur_y += 1
 
         button_y = l_item_cur_y + 1
-        action_button_accept = ActionButton(self.container, " A ", " Accept ", 1, button_y)
+        action_button_accept = ActionButton(
+            self.container, " A ", " Accept ", 1, button_y
+        )
         action_button_accept.draw()
         action_button_cancel = ActionButton(
             self.container, " ESC ", " Cancel ", action_button_accept.w + 1, button_y

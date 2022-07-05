@@ -17,7 +17,6 @@ from curses.textpad import Textbox
 from app.colors import ColorPairs
 from app.window import Window
 from typing import Tuple
-import textwrap
 import curses
 import time
 
