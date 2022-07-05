@@ -31,7 +31,7 @@ class Utils:
 
         >>> s = "some very long description"
         >>> Utils.truncate(s, 14)
-        'some [...]'
+        'some very l...'
         >>> s2 = "someverylongdescription"
         >>> Utils.truncate(s2, 14)
         'someverylon...'
