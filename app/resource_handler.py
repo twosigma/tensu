@@ -18,7 +18,6 @@ from app.sensu_go import SensuGoHelper
 from datetime import datetime
 from app.utils import Utils
 import structlog
-import time
 import queue
 
 
@@ -98,9 +97,10 @@ class ResourceHandler:
         The responses are waiting on the shared Queue.
         If we are allowed to start making requests again, then
         1. Check if there is anything on the Queue to br processed and process it.
-        2. If there is a continuation from Sensu in the response, then make another request.
-           - Append results to new_items.
-        3. If there is no continatuion, swap the old data (items) with the newly fetched data (new_items).
+        2. If there is a continuation from Sensu in the response,
+           then make another request. Append results to new_items.
+        3. If there is no continatuion, swap the old data (items) with the
+           newly fetched data (new_items).
         """
         self.logger.debug(
             "ResourceHandler__fetch", fetch_interval_ms=self.state["fetch_interval_ms"]
@@ -174,8 +174,11 @@ class ResourceHandler:
             try:
                 self.q.get_nowait()
                 self.q.close()
-            except:
-                pass
+            except Exception:
+                self.logger.exception(
+                    "Exception occured while waiting for fetch background process to"
+                    " stop. Ignoring..."
+                )
             self.fetch_process.join(1)
         self.logger.debug("ResourceHandler.kill", terminated=True, waiting=False)
 
@@ -207,7 +210,8 @@ class ResourceHandler:
     def set_fetch_status_callable(self, callable):
         """Takes a function as an argument and sets that as the fetch_status_callable.
 
-        The fetch_status_callable is what function is called when we need to update a status message.
+        The fetch_status_callable is what function is called
+        when we need to update a status message.
         """
 
         self.fetch_status_callable = callable
@@ -215,7 +219,8 @@ class ResourceHandler:
     def get_resource_items(self, **kwargs):
         """Requests items from Sensu API backend.
 
-        If we are allowed to start making requests, and the last round of fetching is done:
+        If we are allowed to start making requests,
+        and the last round of fetching is done:
         1. Reset some internal state
         2. Start a new round of fetching in a background process.
 

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from app.display import get_max_lines, get_max_line_length, block_on_input
+from app.display import get_max_lines, get_max_line_length
 from app.colors import ColorPairs
 from app.window import Window
 import curses

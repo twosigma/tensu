@@ -20,7 +20,7 @@ from app.display import (
 from app.defaults import ViewOptions, InternalDefaults, AuthenticationOptions, Filters
 from app.silencedinfowindow import SilencedInfoWindow
 from app.dataviewcontainer import DataViewContainer
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from app.resource_handler import ResourceHandler
 from app.eventinfowindow import EventInfoWindow
 from app.actionbarbottom import ActionBarBottom
@@ -29,14 +29,11 @@ from app.displaymessage import DisplayMessage
 from app.controlbartop import ControlBarTop
 from app.contextbutton import ContextButton
 from app.controlbutton import ControlButton
-from structlog.stdlib import LoggerFactory
 from app.statusbartop import StatusBarTop
-from app.columnheader import ColumnHeader
 from app.loginprompt import LoginPrompt
 from app.sensu_go import SensuGoHelper
 from app.listselect import ListSelect
 from app.inputbox import InputBox
-from app.dataview import DataView
 from app.colors import ColorPairs
 from app.utils import Utils
 from curses import wrapper
@@ -178,12 +175,12 @@ class Tensu:
                     state = json.loads(f.read())
                     # automatically adopt new defaults
                     for k in InternalDefaults.STATE.keys():
-                        if not k in state:
+                        if k not in state:
                             state[k] = InternalDefaults.STATE[k]
                     return state
             else:
                 return InternalDefaults.STATE
-        except:
+        except Exception:
             return InternalDefaults.STATE
 
     def set_state(self):
@@ -576,7 +573,7 @@ class Tensu:
 
             self.resource_handler.get_resource_items(**kwargs)
 
-        except requests.RequestException as e:
+        except requests.RequestException:
             self.logger.exception(
                 "Error trying to retrieve events from Sensu GO backend."
             )
@@ -755,10 +752,12 @@ class Tensu:
 
             # Create initial windows
             self.make_windows()
-        except Exception as e:
+        except Exception:
             curses.endwin()
             print(
-                "Error during curses initialization. Your terminal likely is missing capabilities. Please change your TERM environment variable to something like xterm-256color, or screen-256color"
+                "Error during curses initialization. Your terminal likely is missing"
+                " capabilities. Please change your TERM environment variable to"
+                " something like xterm-256color, or screen-256color"
             )
             traceback.print_exc()
             sys.exit(1)
@@ -774,19 +773,24 @@ class Tensu:
             except curses.error:
                 DisplayMessage(
                     stdscr,
-                    f"Error!\nCheck {self.debug_log_file}\nYour terminal dimensions may be too small!",
+                    f"Error!\nCheck {self.debug_log_file}\nYour terminal dimensions may"
+                    " be too small!",
                 ).draw()
                 self.logger.exception(
-                    "Tensu encountered an error when trying to draw the screen. Your terminal dimensions may be too small!"
+                    "Tensu encountered an error when trying to draw the screen. Your"
+                    " terminal dimensions may be too small!"
                 )
 
             except Exception:
                 DisplayMessage(
                     stdscr,
-                    f"Tensu encountered an unhandled exception. Press any key to continue.\nYou can report bugs to https://github.com/twosigma/tensu\n\n{traceback.format_exc()}",
+                    "Tensu encountered an unhandled exception. Press any key to"
+                    " continue.\nYou can report bugs to"
+                    f" https://github.com/twosigma/tensu\n\n{traceback.format_exc()}",
                 ).draw()
                 self.logger.exception(
-                    "Tensu encountered an unhandled exception. You can report bugs to https://github.com/twosigma/tensu."
+                    "Tensu encountered an unhandled exception. You can report bugs to"
+                    " https://github.com/twosigma/tensu."
                 )
 
 
@@ -822,7 +826,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "-k",
         "--key-from-file",
-        help="Path to a flat file containing SENSU_API_KEY. Forces API_KEY authentication.",
+        help=(
+            "Path to a flat file containing SENSU_API_KEY. Forces API_KEY"
+            " authentication."
+        ),
         required=False,
         default=None,
         action="store",

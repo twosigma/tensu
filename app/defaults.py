@@ -31,6 +31,16 @@ class Filters:
     SILENCED_REASON_REGEX = "REASON_REGEX"
 
 
+DEFAULT_KEYMAP = {
+    ViewOptions.NOT_PASSING: {"label": "Alt+1", "modifier": 27, "key": 49},
+    ViewOptions.ALL: {"label": "Alt+2", "modifier": 27, "key": 50},
+    ViewOptions.SILENCED: {"label": "Alt+3", "modifier": 27, "key": 51},
+    Filters.EVENT_HOST_REGEX: {"label": "Ctrl+F", "key": 6},
+    Filters.EVENT_CHECK_REGEX: {"label": "Ctrl+N", "key": 14},
+    Filters.EVENT_OUTPUT_REGEX: {"label": "Ctrl+O", "key": 15},
+}
+
+
 class AuthenticationOptions:
     """Defines string values for authentication options."""
 
@@ -51,4 +61,5 @@ class InternalDefaults:
         "max_fetch_events": 500,
         "fetch_interval_ms": 700,
         "view": ViewOptions.NOT_PASSING,
+        "keymap": DEFAULT_KEYMAP,
     }

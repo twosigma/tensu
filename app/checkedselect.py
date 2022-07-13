@@ -55,7 +55,8 @@ class CheckedSelect(Window):
                 ),
                 len(self.title),
             )
-            + 10  # Because we add ' [X] ' in front of each item, +4 for border, +1 for EOL
+            + 10  # Because we add ' [X] ' in front of each item
+            # , +4 for border, +1 for EOL
         )
         w = max([w, self.control_button_min_width])
         y = (int(self.parent.h / 2)) - (int(h / 2))
@@ -91,7 +92,7 @@ class CheckedSelect(Window):
         """Draw the items."""
         l_item_cur_y = 2
         for index, item in enumerate(self.items):
-            if item["checked"] == True:
+            if item["checked"] is True:
                 check_str = " [X] "
             else:
                 check_str = " [ ] "

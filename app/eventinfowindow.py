@@ -16,9 +16,6 @@ from app.display import (
     break_lines_on_max_width,
     get_max_lines,
     get_max_line_length,
-    handle_terminal_resize,
-    StatusBarTopHeight,
-    ControlBarHeight,
 )
 from app.newsilencingentry import NewSilencingEntry
 from app.checkedselect import CheckedSelect
@@ -26,7 +23,6 @@ from app.actionbutton import ActionButton
 from app.defaults import InternalDefaults
 from datetime import datetime, timedelta
 from app.sensu_go import SensuGoHelper
-from curses.textpad import Textbox
 from app.colors import ColorPairs
 from app.datapane import DataPane
 from app.window import Window

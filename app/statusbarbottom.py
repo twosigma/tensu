@@ -67,14 +67,17 @@ class StatusBarBottom(Window):
         self.color(self.base_theme)
 
         message_text = self.state.get("status_message", "")
-        status_text = f"[{self._s_i()}/{self._s_vi()}] (Total: {self._s_ti()}, Filtered: {self._s_fi()}) {message_text}"
+        status_text = (
+            f"[{self._s_i()}/{self._s_vi()}] (Total: {self._s_ti()}, Filtered:"
+            f" {self._s_fi()}) {message_text}"
+        )
 
         fetch_text = self.state.get("fetch_status", "")
 
         max_status_len = ((curses.COLS - 1) - len(fetch_text)) + 1
 
         status_theme = self.base_theme
-        if self.state.get("status_is_error", False) == True:
+        if self.state.get("status_is_error", False) is True:
             status_theme = self.error_theme
 
         self.win.addstr(0, 0, Utils.truncate(status_text, max_status_len), status_theme)

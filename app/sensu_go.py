@@ -14,13 +14,10 @@
 
 from app.defaults import InternalDefaults, AuthenticationOptions
 from requests_kerberos import HTTPKerberosAuth, DISABLED
-from datetime import datetime, timezone
 from typing import Any, Union, Tuple
-from urllib import parse
 import multiprocessing
 import structlog
 import requests
-import urllib
 import base64
 import time
 import json
@@ -161,7 +158,10 @@ class SensuGoHelper:
 
     def execute_check(self, check_data: dict) -> dict:
         check_name = check_data["check"]
-        path = f"{self.url()}/api/{self.API_VERSION}/namespaces/{self.namespace()}/checks/{check_name}/execute"
+        path = (
+            f"{self.url()}/api/{self.API_VERSION}/namespaces/"
+            f"{self.namespace()}/checks/{check_name}/execute"
+        )
 
         r = self.__request(
             method="post", uri=path, headers=self.auth_headers(), json_data=check_data
@@ -170,7 +170,10 @@ class SensuGoHelper:
         return r.json()
 
     def get_event(self, entity: str, check: str) -> dict:
-        path = f"{self.url()}/api/{self.API_VERSION}/namespaces/{self.namespace()}/events/{entity}/{check}"
+        path = (
+            f"{self.url()}/api/{self.API_VERSION}/namespaces/"
+            f"{self.namespace()}/events/{entity}/{check}"
+        )
         r = self.__request(method="get", uri=path, headers=self.auth_headers())
         r.raise_for_status()
         return r.json()
@@ -194,7 +197,10 @@ class SensuGoHelper:
         }
         if check != "*":
             silenced["check"] = check
-        path = f"{self.url()}/api/{self.API_VERSION}/namespaces/{self.namespace()}/silenced"
+        path = (
+            f"{self.url()}/api/{self.API_VERSION}/namespaces/"
+            f"{self.namespace()}/silenced"
+        )
         r = self.__request(
             method="post", uri=path, headers=self.auth_headers(), json_data=silenced
         )
@@ -202,7 +208,10 @@ class SensuGoHelper:
         return r.status_code
 
     def delete_silence(self, entry: str) -> int:
-        path = f"{self.url()}/api/{self.API_VERSION}/namespaces/{self.namespace()}/silenced/{entry}"
+        path = (
+            f"{self.url()}/api/{self.API_VERSION}/namespaces/"
+            f"{self.namespace()}/silenced/{entry}"
+        )
         r = self.__request(method="delete", uri=path, headers=self.auth_headers())
         r.raise_for_status()
         return r.status_code
@@ -211,7 +220,10 @@ class SensuGoHelper:
         entity_name = event["entity"]["metadata"]["name"]
         check_name = event["check"]["metadata"]["name"]
 
-        path = f"{self.url()}/api/{self.API_VERSION}/namespaces/{self.namespace()}/events/{entity_name}/{check_name}"
+        path = (
+            f"{self.url()}/api/{self.API_VERSION}/namespaces/"
+            f"{self.namespace()}/events/{entity_name}/{check_name}"
+        )
         r = self.__request(
             method="put", uri=path, headers=self.auth_headers(), json_data=event
         )
@@ -241,7 +253,10 @@ class SensuGoHelper:
             params["continue"] = sensu_continue
         r = self.__request(
             method="get",
-            uri=f"{self.url()}/api/{self.API_VERSION}/namespaces/{self.namespace()}/{resource}",
+            uri=(
+                f"{self.url()}/api/{self.API_VERSION}/namespaces/"
+                f"{self.namespace()}/{resource}"
+            ),
             headers=self.auth_headers(),
             params=params,
         )

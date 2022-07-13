@@ -91,7 +91,7 @@ class LoginPrompt(Window):
 
         # Blocking method edit()
         self.p_win.win.move(0, 0)
-        nothing = self.p_edit.edit(mask.mask)
+        nothing = self.p_edit.edit(mask.mask)  # noqa
         password = mask.value()
 
         self.stdscr.refresh()

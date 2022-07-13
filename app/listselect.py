@@ -77,7 +77,7 @@ class ListSelect(Window):
         while True:
             self.draw_items()
             key = self.stdscr.getch()
-            if key in (curses.ascii.BEL, curses.ascii.NL):
+            if key in (curses.ascii.BEL, curses.ascii.NL, curses.ascii.ESC):
                 break
             if key == curses.KEY_UP:
                 if self.selected_index < 1:
@@ -87,8 +87,6 @@ class ListSelect(Window):
                 if self.selected_index == len(self.items) - 1:
                     continue
                 self.selected_index += 1
-            if key == curses.ascii.ESC:
-                sys.exit(1)
 
         curses.halfdelay(1)
 

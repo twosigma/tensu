@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from app.display import StatusBarTopHeight, ControlBarHeight
 from app.display import header_pre_render
 from app.colors import ColorPairs
 from app.window import Window

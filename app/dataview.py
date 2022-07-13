@@ -13,10 +13,6 @@
 # limitations under the License.
 
 from app.display import (
-    StatusBarTopHeight,
-    ControlBarHeight,
-    StatusBarBottomHeight,
-    ActionBarBottomHeight,
     EventHeaders,
     SilencedHeaders,
 )

@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from datetime import datetime
 from unittest import mock
-import app
 from app.sensu_go import SensuGoHelper
 from app.defaults import AuthenticationOptions
 from requests import Response
@@ -30,7 +28,7 @@ class SensuGoHelperTests(unittest.TestCase):
         logging.basicConfig(stream=sys.stderr)
         self.logger = logging.getLogger(self.__name__)
         self.logger.setLevel(logging.DEBUG)
-        self.fake_access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTQwMDk5MjcsImp0aSI6IjlkZWZkMWM2OTc5YjcyMWRmNDk2ZmJjODYzNDIxMTE5IiwiaXNzIjoiaHR0cDovL215LXNlbnN1LXNlcnZlci5jb20iLCJzdWIiOiJ1c2VyLWZyb20tand0IiwiZ3JvdXBzIjpbInNlY2luZnJhLWFkIiwic3lzdGVtOnVzZXJzIl0sInByb3ZpZGVyIjp7InByb3ZpZGVyX2lkIjoiYmFzaWMiLCJwcm92aWRlcl90eXBlIjoiIiwidXNlcl9pZCI6InVzZXItZnJvbS1qd3QifSwiYXBpX2tleSI6ZmFsc2V9.YxASxU-0P89FCvhkE05Aew05_1yWzns7ncHU-3sMVtU"
+        self.fake_access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NTQwMDk5MjcsImp0aSI6IjlkZWZkMWM2OTc5YjcyMWRmNDk2ZmJjODYzNDIxMTE5IiwiaXNzIjoiaHR0cDovL215LXNlbnN1LXNlcnZlci5jb20iLCJzdWIiOiJ1c2VyLWZyb20tand0IiwiZ3JvdXBzIjpbInNlY2luZnJhLWFkIiwic3lzdGVtOnVzZXJzIl0sInByb3ZpZGVyIjp7InByb3ZpZGVyX2lkIjoiYmFzaWMiLCJwcm92aWRlcl90eXBlIjoiIiwidXNlcl9pZCI6InVzZXItZnJvbS1qd3QifSwiYXBpX2tleSI6ZmFsc2V9.YxASxU-0P89FCvhkE05Aew05_1yWzns7ncHU-3sMVtU"  # noqa
 
     def fake_api_response(self, content, status_code=200, headers={}):
         r = Response()
@@ -63,7 +61,7 @@ class SensuGoHelperTests(unittest.TestCase):
         )
 
     @mock.patch("os.environ", new={})
-    def test_get_authentication_method_krb_from_environ(self):
+    def test_get_authentication_method_basic_from_environ(self):
         sensu_go_helper = SensuGoHelper({})
         assert (
             sensu_go_helper.get_authentication_method()
@@ -128,19 +126,19 @@ class SensuGoHelperTests(unittest.TestCase):
         r = self.fake_api_response('[ {"name": "default"}, {"name": "other"} ]')
         with mock.patch.object(
             SensuGoHelper, "_SensuGoHelper__request", return_value=r
-        ) as m:
-
+        ):
             sensu_go_helper = SensuGoHelper(
                 {"sensu_api_key": "abc123", "url": "https://my-sensu-go:8080/"}
             )
             assert sensu_go_helper.get_namespaces()[0]["name"] == "default"
 
     def test_namespaces_400(self):
-        r = self.fake_api_response('[ {"name": "default"}, {"name": "other"} ]', status_code=400)
+        r = self.fake_api_response(
+            '[ {"name": "default"}, {"name": "other"} ]', status_code=400
+        )
         with mock.patch.object(
             SensuGoHelper, "_SensuGoHelper__request", return_value=r
-        ) as m:
-
+        ):
             sensu_go_helper = SensuGoHelper(
                 {"sensu_api_key": "abc123", "url": "https://my-sensu-go:8080/"}
             )

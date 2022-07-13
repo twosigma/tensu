@@ -18,7 +18,6 @@ from app.colors import ColorPairs
 from app.window import Window
 from typing import Tuple
 import curses
-import time
 
 
 class CancelEditException(Exception):
@@ -31,7 +30,10 @@ class NewSilencingEntry(Window):
     def __init__(self, stdscr, event: dict, parent) -> None:
         """Initialize the window."""
         # TODO Make this have feature parity with web dashboard
-        self.default_value = f"entity:{event['entity']['metadata']['name']}:{event['check']['metadata']['name']}"
+        self.default_value = (
+            f"entity:{event['entity']['metadata']['name']}:"
+            f"{event['check']['metadata']['name']}"
+        )
         self.title = "Create a new silencing entry"
         self.parent = parent
         h, w, y, x = self.get_dimensions()

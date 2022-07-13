@@ -94,10 +94,6 @@ class SilencedInfoWindow(Window):
         )
         action_button_close.draw()
 
-    def draw_after_resize(self) -> None:
-        self.draw()
-        curses.doupdate()
-
     def prompt(self) -> None:
         """A control loop to accept commands."""
         block_on_input(self.stdscr)

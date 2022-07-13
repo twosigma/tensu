@@ -49,20 +49,18 @@ class SilencedItem(Window):
         silenced_name = self.item["metadata"]["name"]
         silenced_by = self.item["metadata"]["created_by"]
         silenced_reason = self.item.get("reason", "(No reason provided)")
-        silenced_expire_on_resolved = self.item["expire_on_resolve"]
+        silenced_expire_on_resolved = self.item["expire_on_resolve"]  # noqa
         silenced_begin = self.item["begin"]
-        silenced_expire = self.item["expire"]
-        silenced_expire_at = self.item["expire_at"]
+        silenced_expire = self.item["expire"]  # noqa
+        silenced_expire_at = self.item["expire_at"]  # noqa
 
         name_theme = curses.color_pair(ColorPairs.SILENCED_NAME)
         silenced_by_theme = curses.color_pair(ColorPairs.SILENCED_BY)
-        item_label_theme = curses.color_pair(ColorPairs.ITEM_LABEL)
         reason_theme = curses.color_pair(ColorPairs.ITEM_OUTPUT)
         if self.selected:
             theme = curses.color_pair(ColorPairs.ITEM_ROW_SELECTED)
             name_theme = curses.color_pair(ColorPairs.SILENCED_NAME_SELECTED)
             silenced_by_theme = curses.color_pair(ColorPairs.SILENCED_BY_SELECTED)
-            item_label_theme = curses.color_pair(ColorPairs.ITEM_LABEL_SELECTED)
             reason_theme = curses.color_pair(ColorPairs.ITEM_OUTPUT_SELECTED)
         else:
             theme = curses.color_pair(ColorPairs.ITEM_ROW)
