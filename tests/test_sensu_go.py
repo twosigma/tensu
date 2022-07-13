@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from unittest import mock
-from app.sensu_go import SensuGoHelper
 from app.defaults import AuthenticationOptions
+from app.sensu_go import SensuGoHelper
+from requests import HTTPError
 from requests import Response
+from unittest import mock
 import unittest
 import logging
+import time
 import sys
-from requests import HTTPError
 
 
 class SensuGoHelperTests(unittest.TestCase):
@@ -107,6 +108,39 @@ class SensuGoHelperTests(unittest.TestCase):
     def test_get_namespace(self):
         sensu_go_helper = SensuGoHelper({"namespace": "default"})
         assert sensu_go_helper.namespace() == "default"
+
+    def test_is_token_expired_true(self):
+        five_minutes_ago = int(time.time()) - (60 * 5)
+        sensu_go_helper = SensuGoHelper({"auth": {"expires_at": five_minutes_ago}})
+        assert sensu_go_helper.is_token_expired() is True
+
+    def test_is_token_expired_false(self):
+        five_minutes_future = int(time.time()) + (60 * 5)
+        sensu_go_helper = SensuGoHelper({"auth": {"expires_at": five_minutes_future}})
+        assert sensu_go_helper.is_token_expired() is False
+
+    @mock.patch("app.sensu_go.requests.post")
+    def test_refresh(self, m):
+        refresh_token = "i-am-a-refresh-token"
+        url = "https://my-sensu-go:8080"
+        access_token = "i-am-an-access-token"
+        sensu_go_helper = SensuGoHelper(
+            {
+                "url": url,
+                "auth": {"access_token": access_token, "refresh_token": refresh_token},
+            }
+        )
+        expected_headers = sensu_go_helper.auth_headers()
+        sensu_go_helper.refresh()
+        m.assert_called_once_with(
+            auth=None,
+            data=None,
+            headers=expected_headers,
+            json={"refresh_token": refresh_token},
+            params=None,
+            url="https://my-sensu-go:8080/auth/token",
+            verify=None,
+        )
 
     def test_auth_headers_bearer(self):
         sensu_go_helper = SensuGoHelper(
