@@ -89,9 +89,9 @@ class SilencedItem(Window):
             add_back_pct = 0
 
             if column_grow_pct != 0:
-                calculated_width = int(available_width * column_grow_pct) - 1
+                calculated_width = int(self.w * column_grow_pct) - 1
                 if calculated_width > column_width:
-                    column_width = calculated_width
+                    column_width = int(available_width * column_grow_pct) - 1
                 else:
                     add_back_pct += column_grow_pct
 
