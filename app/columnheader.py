@@ -52,7 +52,6 @@ class ColumnHeader(Window):
         # sized by min-width then reduce the available_width for
         # other columns when using grow-pct.
         available_width = header_pre_render(self.header_infos, self.w - 1)
-
         # Render
         # Second run through all the columns and actually draw
         # based on the available_width. Any columns that will be
@@ -60,6 +59,7 @@ class ColumnHeader(Window):
         # their grow-pct added back to the pool for other columns
         # to use.
         add_back_pct = 0
+        calculated_width = 0
         for header_info in self.header_infos:
             column_name = header_info[0]
             column_width = header_info[1]
@@ -67,17 +67,24 @@ class ColumnHeader(Window):
             add_back_pct = 0
 
             if column_grow_pct != 0:
-                calculated_width = int(available_width * column_grow_pct) - 1
+                calculated_width = int(self.w * column_grow_pct) - 1
                 if calculated_width > column_width:
-                    column_width = calculated_width
+                    column_width = int(available_width * column_grow_pct) - 1
                 else:
                     add_back_pct += column_grow_pct
 
             self.logger.debug(
                 "ColumnHeader.draw",
+                column_name=column_name,
+                header_width=header_info[1],
                 column_width=column_width,
+                calculated_width=calculated_width,
                 available_width=available_width,
                 curses_COLS=curses.COLS,
+                curr_x=curr_x,
+                add_back_pct=add_back_pct,
+                self_w=self.w,
+                column_grow_pct=column_grow_pct
             )
 
             self.win.addstr(0, curr_x, column_name, self.theme)

@@ -84,15 +84,21 @@ def get_max_lines(text: str) -> int:
 
 def header_pre_render(header_infos: Tuple[str, int, float], available_width: int):
     """Return the available width for drawing columns correctly."""
+    ret = available_width
+    add_back_pct = 0
     for h in header_infos:
-        if h[2] == 0:
-            available_width -= h[1]
+        grow_pct = h[2] + add_back_pct
+        w = h[1]
+        add_back_pct = 0
+        if grow_pct == 0:
+            ret -= w
         else:
-            c = int(available_width * h[2]) - 1
+            c = int(available_width * grow_pct) - 1
             if c <= h[1]:
-                available_width -= h[1]
+                ret -= h[1]
+                add_back_pct = grow_pct
 
-    return available_width
+    return ret
 
 
 def handle_terminal_resize(stdscr):
