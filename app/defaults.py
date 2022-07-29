@@ -18,6 +18,14 @@ class ViewOptions:
     ALL = "ALL"
     SILENCED = "SILENCED"
 
+    def __eq__(self, other):
+        return any(
+            [
+                other == getattr(self, item)
+                for item in filter(lambda x: (not x.startswith("_")), dir(self))
+            ]
+        )
+
 
 class Filters:
     """Defines string values for various filters."""
@@ -29,6 +37,14 @@ class Filters:
     SILENCED_NAME_REGEX = "NAME_REGEX"
     SILENCED_CREATOR_REGEX = "CREATOR_REGEX"
     SILENCED_REASON_REGEX = "REASON_REGEX"
+
+    def __eq__(self, other):
+        return any(
+            [
+                other == getattr(self, item)
+                for item in filter(lambda x: (not x.startswith("_")), dir(self))
+            ]
+        )
 
 
 DEFAULT_KEYMAP = {

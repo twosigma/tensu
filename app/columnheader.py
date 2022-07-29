@@ -84,7 +84,7 @@ class ColumnHeader(Window):
                 curr_x=curr_x,
                 add_back_pct=add_back_pct,
                 self_w=self.w,
-                column_grow_pct=column_grow_pct
+                column_grow_pct=column_grow_pct,
             )
 
             self.win.addstr(0, curr_x, column_name, self.theme)
