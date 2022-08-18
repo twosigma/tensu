@@ -47,14 +47,6 @@ class Filters:
         )
 
 
-DEFAULT_KEYMAP = {
-    ViewOptions.NOT_PASSING: {"label": "Alt+1", "modifier": 27, "key": 49},
-    ViewOptions.ALL: {"label": "Alt+2", "modifier": 27, "key": 50},
-    ViewOptions.SILENCED: {"label": "Alt+3", "modifier": 27, "key": 51},
-    Filters.EVENT_HOST_REGEX: {"label": "Ctrl+F", "key": 6},
-    Filters.EVENT_CHECK_REGEX: {"label": "Ctrl+N", "key": 14},
-    Filters.EVENT_OUTPUT_REGEX: {"label": "Ctrl+O", "key": 15},
-}
 
 
 class AuthenticationOptions:
@@ -69,6 +61,18 @@ class InternalDefaults:
     """Defines default configuration settings."""
 
     APPNAME = "Tensu"
+
+    DEFAULT_KEYMAP = {
+        ViewOptions.NOT_PASSING: {"label": "Alt+1", "modifier": 27, "key": 49},
+        ViewOptions.ALL: {"label": "Alt+2", "modifier": 27, "key": 50},
+        ViewOptions.SILENCED: {"label": "Alt+3", "modifier": 27, "key": 51},
+        Filters.SILENCED_NAME_REGEX: {"label":"Ctrl+F", "key": 6},
+        Filters.SILENCED_CREATOR_REGEX: {"label":"Ctrl+F", "key": 15},
+        Filters.SILENCED_REASON_REGEX: {"label":"Ctrl+F", "key": 18},
+        Filters.EVENT_HOST_REGEX: {"label": "Ctrl+F", "key": 6},
+        Filters.EVENT_CHECK_REGEX: {"label": "Ctrl+N", "key": 14},
+        Filters.EVENT_OUTPUT_REGEX: {"label": "Ctrl+O", "key": 15},
+    }
 
     STATE = {
         "status_message": "Welcome to Tensu!",

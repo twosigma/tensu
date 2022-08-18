@@ -91,6 +91,7 @@ class Tensu:
         self.resource_handler = ResourceHandler(self.state, self.sensu_go_helper)
         self.resource_handler.set_callable(self.update_view)
         self.resource_handler.set_fetch_status_callable(self.update_fetch_status)
+        self.logger.debug("", keymap=self.keymap())
 
     def configure_logger(self):
         """Configures the application logger
@@ -319,19 +320,23 @@ class Tensu:
 
         self.logger.debug("handle_user_input", key=ch)
         nextch = None
-        for identifier in self.state["keymap"]:
-            key_options = self.state["keymap"][identifier]
+        matches = []
+        for identifier in self.keymap():
+            key_options = self.keymap()[identifier]
             modifier = key_options.get("modifier", None)
             key = key_options.get("key")
 
             if ch == modifier:
                 nextch = nextch or self.s.getch()
                 if nextch == key:
-                    self.dispatch_key_event(identifier)
-                    return
-            elif ch == key:
+                    matches.append(identifier)
+            elif ch == key and modifier is None:
+                matches.append(identifier)
+
+        if matches:
+            for identifier in matches:
                 self.dispatch_key_event(identifier)
-                return
+            return
 
         # Static key assignments
         if ch == 16:  # Ctrl+P
@@ -459,8 +464,14 @@ class Tensu:
                 bool(self.get_filter_value(Filters.SILENCED_REASON_REGEX))
             )
 
-    def keymapping(self, identifier):
-        return self.state["keymap"][identifier]
+    def keymap(self):
+        """ Return a merged copy of keymappings
+        with userdefined mappings falling back on
+        default mappings. """
+        return { **InternalDefaults.DEFAULT_KEYMAP, **self.state["keymap"] }
+
+    def keymapping(self, identifier): 
+        return self.keymap()[identifier]
 
     def make_control_bar(self):
         """Draws the 'ControlBar' with buttons for switching views."""
