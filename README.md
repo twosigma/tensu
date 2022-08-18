@@ -5,6 +5,11 @@ Tensu is a TUI (curses) based program for interacting with SensuGo Enterprises' 
 ![screenshot](/misc/screenshot-2.jpg "Screenshot")
 
 # Installation
+
+Requirements:
+
+* Python 3.7+
+
 ```
 pip3 install -r requirements.txt
 ```
