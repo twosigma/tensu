@@ -7,7 +7,7 @@ from app import utils
 from tests.test_display import DisplayTests  # noqa
 from tests.test_utils import UtilTests  # noqa
 from tests.test_sensu_go import SensuGoHelperTests  # noqa
-from tests.test_tensu import TensuTests # noqa
+from tests.test_tensu import TensuTests  # noqa
 
 
 def load_tests(loader, tests, ignore):

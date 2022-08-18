@@ -18,16 +18,26 @@ from app import defaults
 import unittest
 import logging
 import sys
+import json
+import io
+
 
 class TensuTests(unittest.TestCase):
-    #curses_mock = FakeCurses()
+    # curses_mock = FakeCurses()
 
-    class FakeFile:
-        def __init__(self, data):
-            self.data = data
-
-        def read(self):
-            return data
+    km = {
+        "NOT_PASSING": {"label": "Alt+1", "modifier": 27, "key": 49},
+        "ALL": {"label": "Alt+2", "modifier": 27, "key": 50},
+        # Purposefully remove this entry for testing
+        #        "SILENCED": {
+        #            "label": "Alt+3",
+        #            "modifier": 27,
+        #            "key": 51
+        #        },
+        "HOST_REGEX": {"label": "Ctrl+F", "key": 7},
+        "CHECK_REGEX": {"label": "Ctrl+N", "key": 14},
+        "OUTPUT_REGEX": {"label": "Ctrl+X", "key": 12},
+    }
 
     @classmethod
     def setUpClass(self):
@@ -55,15 +65,82 @@ class TensuTests(unittest.TestCase):
         t.state_file = "/foo"
         assert t.get_state() == defaults.InternalDefaults.STATE
 
-    @mock.patch('builtins.open')
+    @mock.patch("builtins.open")
+    @mock.patch("os.path.exists")
+    @mock.patch("tensu.Tensu.__init__")
+    def test_get_state_default_state(self, mock_tensu, mock_exists, mock_open):
+        # It should return the state from internal defaults
+        mock_tensu.return_value = None
+        mock_exists.return_value = True
+        mock_open.return_value = io.StringIO("{}")
+        t = Tensu()
+        t.state_file = "/foo"
+        s = t.get_state()
+        assert all(
+            [
+                s[key] == defaults.InternalDefaults.STATE[key]
+                for key in defaults.InternalDefaults.STATE
+            ]
+        )
+
+    @mock.patch("builtins.open")
+    @mock.patch("os.path.exists")
+    @mock.patch("tensu.Tensu.__init__")
+    def test_get_state_default_state_mixed(self, mock_tensu, mock_exists, mock_open):
+        # It should return the state from internal defaults
+        mock_tensu.return_value = None
+        mock_exists.return_value = True
+        mock_open.return_value = io.StringIO('{"status_message": "foobar"}')
+        t = Tensu()
+        t.state_file = "/foo"
+        s = t.get_state()
+        assert s["status_message"] == "foobar"
+        assert all(
+            [
+                s[key] == defaults.InternalDefaults.STATE[key]
+                for key in filter(
+                    lambda x: x != "status_message", defaults.InternalDefaults.STATE
+                )
+            ]
+        )
+
+    @mock.patch("builtins.open")
     @mock.patch("os.path.exists")
     @mock.patch("tensu.Tensu.__init__")
     def test_get_state_all_keys(self, mock_tensu, mock_exists, mock_open):
         # It should return the state from internal defaults
         mock_tensu.return_value = None
         mock_exists.return_value = True
-        mock_open.return_value = self.FakeFile('{"status_message": "foo"}')
+        mock_open.return_value = io.StringIO("{}")
         t = Tensu()
         t.state_file = "/foo"
         s = t.get_state()
-        assert all([s[key] == defaults.InternalDefaults.STATE[key] for key in defaults.InternalDefaults.STATE])
+        assert all(
+            [
+                s[key] == defaults.InternalDefaults.STATE[key]
+                for key in defaults.InternalDefaults.STATE
+            ]
+        )
+
+    @mock.patch("builtins.open")
+    @mock.patch("os.path.exists")
+    @mock.patch("tensu.Tensu.__init__")
+    def test_get_state_custom_keys(self, mock_tensu, mock_exists, mock_open):
+        # It should merge user defined keys with any missing from defaults.
+        mock_tensu.return_value = None
+        mock_exists.return_value = True
+        ff = json.dumps({"status_message": "foo", "keymap": self.km})
+        mock_open.return_value = io.StringIO(ff)
+        t = Tensu()
+        t.state_file = "/foo"
+        s = t.get_state()
+        t.state = s
+        self.logger.debug(json.dumps(s, indent=2))
+        self.logger.debug(json.dumps(self.km, indent=2))
+        self.logger.debug(json.dumps(t.keymap(), indent=2))
+        assert s["keymap"] == self.km
+        assert (
+            t.keymap()["SILENCED"]
+            == defaults.InternalDefaults.DEFAULT_KEYMAP["SILENCED"]
+        )
+        assert all(self.km[key] == t.keymap()[key] for key in self.km)

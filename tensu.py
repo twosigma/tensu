@@ -91,7 +91,6 @@ class Tensu:
         self.resource_handler = ResourceHandler(self.state, self.sensu_go_helper)
         self.resource_handler.set_callable(self.update_view)
         self.resource_handler.set_fetch_status_callable(self.update_fetch_status)
-        self.logger.debug("", keymap=self.keymap())
 
     def configure_logger(self):
         """Configures the application logger
@@ -465,12 +464,12 @@ class Tensu:
             )
 
     def keymap(self):
-        """ Return a merged copy of keymappings
+        """Return a merged copy of keymappings
         with userdefined mappings falling back on
-        default mappings. """
-        return { **InternalDefaults.DEFAULT_KEYMAP, **self.state["keymap"] }
+        default mappings."""
+        return {**InternalDefaults.DEFAULT_KEYMAP, **self.state["keymap"]}
 
-    def keymapping(self, identifier): 
+    def keymapping(self, identifier):
         return self.keymap()[identifier]
 
     def make_control_bar(self):
