@@ -8,7 +8,7 @@ Tensu is a TUI (curses) based program for interacting with SensuGo Enterprises' 
 
 Requirements:
 
-* Python 3.7+
+* Python 3.8, 3.9, 3.10
 
 ```
 pip3 install -r requirements.txt
