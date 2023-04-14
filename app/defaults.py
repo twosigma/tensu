@@ -27,6 +27,20 @@ class ViewOptions:
         )
 
 
+class SortOptions:
+    SORT_BY_TIMESTAMP = "sort_by_timestamp"
+    SORT_BY_LAST_OK = "sort_by_last_ok"
+    SORT_BY_ENTITY = "sort_by_entity"
+    SORT_BY_ISSUED = "sort_by_issued"
+    SORT_BY_SEVERITY = "sort_by_severity"
+
+    @classmethod
+    def all(cls):
+        return list(
+            i.lower() for i in filter(lambda x: x.startswith("SORT_BY"), dir(cls))
+        )
+
+
 class Filters:
     """Defines string values for various filters."""
 
@@ -80,4 +94,6 @@ class InternalDefaults:
         "fetch_interval_ms": 700,
         "view": ViewOptions.NOT_PASSING,
         "keymap": DEFAULT_KEYMAP,
+        "sort": SortOptions.SORT_BY_TIMESTAMP,
+        "sort_orders": {x: False for x in SortOptions.all()},
     }

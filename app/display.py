@@ -28,6 +28,7 @@ EventHeaders = (
     ("Hostname", 30, 0.10),
     ("Check Name", 32, 0.10),
     ("Output", 3, 0.80),
+    ("Timestamp", 20, 0),
     ("Issued", 19, 0),
 )
 # Column Name, Minimum Width, Grow Percent

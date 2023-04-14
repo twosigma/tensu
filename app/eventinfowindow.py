@@ -90,6 +90,13 @@ class EventInfoWindow(Window):
 
         datas = (
             ("id:", self.item["id"]),
+            (
+                "Timestamp:",
+                "{} ({})".format(
+                    self.item["timestamp"],
+                    datetime.fromtimestamp(self.item["timestamp"]),
+                ),
+            ),
             ("Entity:", self.item["entity"]["metadata"]["name"]),
             ("Proxy Entity:", self.item["check"]["proxy_entity_name"]),
             ("Check:", self.item["check"]["metadata"]["name"]),

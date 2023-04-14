@@ -42,6 +42,10 @@ class ListSelectItem(Window):
             theme = curses.color_pair(ColorPairs.BUTTON_TEXT_SELECTED)
         else:
             theme = curses.color_pair(ColorPairs.BUTTON_TEXT)
+        self.logger.debug(
+            "text_w={}, list_select_item_w={}, parent_w={}, attempting to draw {}"
+            .format(len(self.text), self.w, self.parent.w, self.text)
+        )
         self.color(theme)
         self.win.addstr(0, 0, self.text)
         self.win.refresh()
