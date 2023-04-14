@@ -21,6 +21,13 @@ class Utils:
     """A helper class."""
 
     @staticmethod
+    def direction_icon(b: bool) -> str:
+        if b is False:
+            return "▲"
+        else:
+            return "▼"
+
+    @staticmethod
     def current_milli_time() -> int:
         """Get the current time as epoch in milliseconds."""
         return round(time.time() * 1000)

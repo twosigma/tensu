@@ -54,6 +54,7 @@ class EventItem(Window):
         name = self.event["check"]["metadata"]["name"]
         hostname = self.event["entity"]["metadata"]["name"]
         issued = self.event["check"]["issued"]
+        timestamp = self.event["timestamp"]
         output = self.event["check"]["output"]
         is_silenced = self.event["check"]["is_silenced"]
 
@@ -81,6 +82,9 @@ class EventItem(Window):
             check_state = "unknown"
 
         issued_str = f"{datetime.fromtimestamp(issued).strftime('%Y-%m-%d %H:%M:%S')}"
+        timestamp_str = (
+            f"{datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')}"
+        )
 
         if is_silenced:
             if self.selected:
@@ -97,6 +101,7 @@ class EventItem(Window):
             (hostname, hostname_theme),
             (name, theme),
             (output, output_theme),
+            (timestamp_str, theme),
             (issued_str, theme),
         )
         curr_x = 0

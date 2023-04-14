@@ -17,7 +17,12 @@
 from app.display import (
     handle_terminal_resize,
 )
-from app.defaults import ViewOptions, InternalDefaults, AuthenticationOptions, Filters
+from app.defaults import (
+    ViewOptions,
+    InternalDefaults,
+    AuthenticationOptions,
+    Filters,
+)
 from app.silencedinfowindow import SilencedInfoWindow
 from app.dataviewcontainer import DataViewContainer
 from datetime import datetime, timezone
@@ -237,6 +242,79 @@ class Tensu:
         handle_terminal_resize(self.s)
         self.make_windows()
 
+    def handle_filter_event(self, identifier):
+        """Handle prompting for filter inputs
+
+        and setting action button activation states
+        """
+        self.logger.debug("Handling filter event", identifier=identifier)
+
+        # TODO: Make this cleaner
+        if self.view_state_is_events():
+            if identifier == Filters.EVENT_HOST_REGEX:
+                self.prompt_and_set_filter(
+                    "Host Regex Filter", Filters.EVENT_HOST_REGEX
+                )
+                self.action_button_host_regex.draw(
+                    bool(self.get_filter_value(Filters.EVENT_HOST_REGEX))
+                )
+            elif identifier == Filters.EVENT_CHECK_REGEX:
+                self.prompt_and_set_filter(
+                    "Check Name Regex Filter", Filters.EVENT_CHECK_REGEX
+                )
+                self.action_button_check_regex.draw(
+                    bool(self.get_filter_value(Filters.EVENT_CHECK_REGEX))
+                )
+            elif identifier == Filters.EVENT_OUTPUT_REGEX:
+                self.prompt_and_set_filter(
+                    "Check Oupout Regex Filter", Filters.EVENT_OUTPUT_REGEX
+                )
+                self.action_button_output_regex.draw(
+                    bool(self.get_filter_value(Filters.EVENT_OUTPUT_REGEX))
+                )
+            else:
+                self.logger.debug(f"Invalid identifier {identifier}")
+
+        elif self.view_state_is_silenced():
+            if identifier == Filters.SILENCED_NAME_REGEX:
+                self.prompt_and_set_filter(
+                    "Silencing Entry Filter", Filters.SILENCED_NAME_REGEX
+                )
+                self.action_button_silenced_name_regex.draw(
+                    bool(self.get_filter_value(Filters.SILENCED_NAME_REGEX))
+                )
+            elif identifier == Filters.SILENCED_CREATOR_REGEX:
+                self.prompt_and_set_filter(
+                    "Creator Regex Filter", Filters.SILENCED_CREATOR_REGEX
+                )
+                self.action_button_creator_regex.draw(
+                    bool(self.get_filter_value(Filters.SILENCED_CREATOR_REGEX))
+                )
+            elif identifier == Filters.SILENCED_REASON_REGEX:
+                self.prompt_and_set_filter(
+                    "Reason Regex Filter", Filters.SILENCED_REASON_REGEX
+                )
+                self.action_button_reason_regex.draw(
+                    bool(self.get_filter_value(Filters.SILENCED_REASON_REGEX))
+                )
+            else:
+                self.logger.debug(f"Invalid identifier {identifier}")
+
+    def dispatch_key_event(self, identifier):
+        """Handle key events that are mapped via the state file"""
+        self.logger.debug(
+            "Dispatching key event",
+            identifier=identifier,
+            is_view_option=(identifier == ViewOptions()),
+            is_filter_option=(identifier == Filters()),
+        )
+
+        if identifier == ViewOptions():
+            self.change_view(identifier)
+
+        if identifier == Filters():
+            self.handle_filter_event(identifier)
+
     def handle_user_input(self):
         """Handle input from users keyboard."""
 
@@ -245,76 +323,33 @@ class Tensu:
             return
 
         self.logger.debug("handle_user_input", key=ch)
+        nextch = None
+        matches = []
+        for identifier in self.keymap():
+            key_options = self.keymap()[identifier]
+            modifier = key_options.get("modifier", None)
+            key = key_options.get("key")
 
-        if ch == ord("q") or ch == ord("Q"):
-            raise KeyboardInterrupt
+            if ch == modifier:
+                nextch = nextch or self.s.getch()
+                if nextch == key:
+                    matches.append(identifier)
+            elif ch == key and modifier is None:
+                matches.append(identifier)
 
-        if ch == 338:  # PageDown
-            self.page_index(1)
-        if ch == 339:  # PageUp
-            self.page_index(0)
+        if matches:
+            for identifier in matches:
+                self.dispatch_key_event(identifier)
+            return
 
-        if ch == 27:  # Alt
-            nextch = self.s.getch()
-            if nextch == 49:  # 1
-                self.change_view(ViewOptions.NOT_PASSING)
-            if nextch == 50:  # 2
-                self.change_view(ViewOptions.ALL)
-            if nextch == 51:  # 3
-                self.change_view(ViewOptions.SILENCED)
-
+        # Static key assignments
         if ch == 16:  # Ctrl+P
             self.set_namespace()
+            self.make_windows()
 
-        if ch == 6:  # Ctrl+F
-            if self.view_state_is_events():
-                self.prompt_and_set_filter(
-                    "Host Regex Filter", Filters.EVENT_HOST_REGEX
-                )
-                self.action_button_host_regex.draw(
-                    bool(self.get_filter_value(Filters.EVENT_HOST_REGEX))
-                )
-            else:
-                self.prompt_and_set_filter(
-                    "Silencing Entry Filter", Filters.SILENCED_NAME_REGEX
-                )
-                self.action_button_silenced_name_regex.draw(
-                    bool(self.get_filter_value(Filters.SILENCED_NAME_REGEX))
-                )
-
-        if ch == 14:  # Ctrl+N
-            if self.view_state_is_events():
-                self.prompt_and_set_filter(
-                    "Check Name Regex Filter", Filters.EVENT_CHECK_REGEX
-                )
-                self.action_button_check_regex.draw(
-                    bool(self.get_filter_value(Filters.EVENT_CHECK_REGEX))
-                )
-
-        if ch == 15:  # Ctrl+O
-            if self.view_state_is_events():
-                self.prompt_and_set_filter(
-                    "Check Oupout Regex Filter", Filters.EVENT_OUTPUT_REGEX
-                )
-                self.action_button_output_regex.draw(
-                    bool(self.get_filter_value(Filters.EVENT_OUTPUT_REGEX))
-                )
-            else:
-                self.prompt_and_set_filter(
-                    "Creator Regex Filter", Filters.SILENCED_CREATOR_REGEX
-                )
-                self.action_button_creator_regex.draw(
-                    bool(self.get_filter_value(Filters.SILENCED_CREATOR_REGEX))
-                )
-
-        if ch == 18:  # Ctrl+R
-            if self.view_state_is_silenced():
-                self.prompt_and_set_filter(
-                    "Reason Regex Filter", Filters.SILENCED_REASON_REGEX
-                )
-                self.action_button_reason_regex.draw(
-                    bool(self.get_filter_value(Filters.SILENCED_REASON_REGEX))
-                )
+        if ch == ord("/"):
+            self.change_sort()
+            self.make_windows()
 
         if ch == 10:  # Enter
             if self.view_state_is_events():
@@ -327,6 +362,15 @@ class Tensu:
 
         if ch == curses.KEY_UP or ch == ord("k"):
             self.move_index(-1)
+
+        if ch == ord("q") or ch == ord("Q"):
+            raise KeyboardInterrupt
+
+        if ch == 338:  # PageDown
+            self.page_index(1)
+
+        if ch == 339:  # PageUp
+            self.page_index(0)
 
     def show_silenced_info(self):
         """Show a modal window with additional information.
@@ -365,23 +409,41 @@ class Tensu:
             curses.COLS - 28,
             0,
         )
-
         self.action_button_change_namespace.draw(False)
 
         if self.view_state_is_events():
+            sort_name = self.state["sort"]
+            sort_friendly = sort_name.replace("sort_by_", "")
+            sort_direction = Utils.direction_icon(self.state["sort_orders"][sort_name])
+            sort_text = f" Sort: {sort_friendly} {sort_direction} "
+            self.action_button_sort = ContextButton(
+                self.action_bar_bottom,
+                " / ",
+                sort_text,
+                (curses.COLS - self.action_button_change_namespace.w)
+                - len(sort_text)
+                - 4,
+                0,
+            )
+            self.action_button_sort.draw(False)
+
             self.action_button_host_regex = ContextButton(
-                self.action_bar_bottom, " Ctrl+F ", " Host Regex ", 1, 0
+                self.action_bar_bottom,
+                f" {self.keymapping(Filters.EVENT_HOST_REGEX)['label']} ",
+                " Host Regex ",
+                1,
+                0,
             )
             self.action_button_check_regex = ContextButton(
                 self.action_bar_bottom,
-                " Ctrl+N ",
+                f" {self.keymapping(Filters.EVENT_CHECK_REGEX)['label']} ",
                 " CheckName Regex ",
                 self.action_button_host_regex.x + self.action_button_host_regex.w,
                 0,
             )
             self.action_button_output_regex = ContextButton(
                 self.action_bar_bottom,
-                " Ctrl+O ",
+                f" {self.keymapping(Filters.EVENT_OUTPUT_REGEX)['label']} ",
                 " CheckOutput Regex ",
                 self.action_button_check_regex.x + self.action_button_check_regex.w,
                 0,
@@ -425,6 +487,15 @@ class Tensu:
                 bool(self.get_filter_value(Filters.SILENCED_REASON_REGEX))
             )
 
+    def keymap(self):
+        """Return a merged copy of keymappings
+        with userdefined mappings falling back on
+        default mappings."""
+        return {**InternalDefaults.DEFAULT_KEYMAP, **self.state["keymap"]}
+
+    def keymapping(self, identifier):
+        return self.keymap()[identifier]
+
     def make_control_bar(self):
         """Draws the 'ControlBar' with buttons for switching views."""
 
@@ -434,7 +505,7 @@ class Tensu:
             self.state,
             ViewOptions.NOT_PASSING,
             self.control_bar_top,
-            " Alt+1 ",
+            f" {self.keymapping(ViewOptions.NOT_PASSING)['label']} ",
             " Not Passing ",
             1,
         )
@@ -443,7 +514,7 @@ class Tensu:
             self.state,
             ViewOptions.ALL,
             self.control_bar_top,
-            " Alt+2 ",
+            f" {self.keymapping(ViewOptions.ALL)['label']} ",
             " All ",
             self.button_not_passing.x + self.button_not_passing.w,
         )
@@ -452,7 +523,7 @@ class Tensu:
             self.state,
             ViewOptions.SILENCED,
             self.control_bar_top,
-            " Alt+3 ",
+            f" {self.keymapping(ViewOptions.SILENCED)['label']} ",
             " Silences ",
             self.button_all.x + self.button_all.w,
         )
@@ -478,10 +549,38 @@ class Tensu:
 
         return self.state["view"] == ViewOptions.SILENCED
 
+    def sort_by_timestamp(self, event):
+        return event["timestamp"]
+
+    def sort_by_last_ok(self, event):
+        return event["check"]["last_ok"]
+
+    def sort_by_entity(self, event):
+        return event["entity"]["metadata"]["name"]
+
+    def sort_by_issued(self, event):
+        return event["check"]["issued"]
+
+    def sort_by_severity(self, event):
+        return event["check"]["status"]
+
+    def sort_events(self, items):
+        sort_name = self.state["sort"]
+        sort_function = getattr(self, sort_name)
+        sort_direction = self.state["sort_orders"][sort_name]
+
+        return sorted(items, key=sort_function, reverse=sort_direction)
+
     def apply_filters(self, items):
         """Filters events and silenced items from the user supplied regex filters."""
-
         filtered = items
+        if self.view_state_is_events():
+            filtered = self.sort_events(items)
+
+        if self.view_state_is_silenced():
+            filtered = items
+            # filtered = self.sort_silenced(items)
+
         for f in self.filters:
             r = re.compile(f["value"])
             if self.view_state_is_events():
@@ -669,6 +768,21 @@ class Tensu:
 
             finally:
                 self.next_auth_check_time = Utils.current_milli_time() + (1000 * 10)
+
+    def change_sort(self):
+        list_items = []
+        for k in self.state["sort_orders"]:
+            d = Utils.direction_icon(not self.state["sort_orders"][k])
+            o = f"{k} {d}"
+            list_items.append(o)
+
+        ls = ListSelect(self.state, self.s, list_items, "Change Sort")
+        ls.draw()
+        sort_select = ls.select().split()[0]
+        self.state["sort"] = sort_select
+        self.state["sort_orders"][sort_select] = not self.state["sort_orders"][
+            sort_select
+        ]
 
     def set_namespace(self):
         """Display a prompt to choose from a list of Sensu namespaces."""
