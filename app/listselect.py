@@ -30,7 +30,7 @@ class ListSelect(Window):
         # the title. Whichever is longest.
         w = (
             max(len(sorted(items, key=lambda k: len(k), reverse=True)[0]), len(title))
-            + 2
+            + 4
         )
         super().__init__(
             h,

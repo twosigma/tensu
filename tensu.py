@@ -17,7 +17,12 @@
 from app.display import (
     handle_terminal_resize,
 )
-from app.defaults import ViewOptions, InternalDefaults, AuthenticationOptions, Filters
+from app.defaults import (
+    ViewOptions,
+    InternalDefaults,
+    AuthenticationOptions,
+    Filters,
+)
 from app.silencedinfowindow import SilencedInfoWindow
 from app.dataviewcontainer import DataViewContainer
 from datetime import datetime, timezone
@@ -265,6 +270,11 @@ class Tensu:
 
         if ch == 16:  # Ctrl+P
             self.set_namespace()
+            self.make_windows()
+
+        if ch == ord("/"):
+            self.change_sort()
+            self.make_windows()
 
         if ch == 6:  # Ctrl+F
             if self.view_state_is_events():
@@ -365,10 +375,24 @@ class Tensu:
             curses.COLS - 28,
             0,
         )
-
         self.action_button_change_namespace.draw(False)
 
         if self.view_state_is_events():
+            sort_name = self.state["sort"]
+            sort_friendly = sort_name.replace("sort_by_", "")
+            sort_direction = Utils.direction_icon(self.state["sort_orders"][sort_name])
+            sort_text = f" Sort: {sort_friendly} {sort_direction} "
+            self.action_button_sort = ContextButton(
+                self.action_bar_bottom,
+                " / ",
+                sort_text,
+                (curses.COLS - self.action_button_change_namespace.w)
+                - len(sort_text)
+                - 4,
+                0,
+            )
+            self.action_button_sort.draw(False)
+
             self.action_button_host_regex = ContextButton(
                 self.action_bar_bottom, " Ctrl+F ", " Host Regex ", 1, 0
             )
@@ -478,10 +502,38 @@ class Tensu:
 
         return self.state["view"] == ViewOptions.SILENCED
 
+    def sort_by_timestamp(self, event):
+        return event["timestamp"]
+
+    def sort_by_last_ok(self, event):
+        return event["check"]["last_ok"]
+
+    def sort_by_entity(self, event):
+        return event["entity"]["metadata"]["name"]
+
+    def sort_by_issued(self, event):
+        return event["check"]["issued"]
+
+    def sort_by_severity(self, event):
+        return event["check"]["status"]
+
+    def sort_events(self, items):
+        sort_name = self.state["sort"]
+        sort_function = getattr(self, sort_name)
+        sort_direction = self.state["sort_orders"][sort_name]
+
+        return sorted(items, key=sort_function, reverse=sort_direction)
+
     def apply_filters(self, items):
         """Filters events and silenced items from the user supplied regex filters."""
-
         filtered = items
+        if self.view_state_is_events():
+            filtered = self.sort_events(items)
+
+        if self.view_state_is_silenced():
+            filtered = items
+            # filtered = self.sort_silenced(items)
+
         for f in self.filters:
             r = re.compile(f["value"])
             if self.view_state_is_events():
@@ -669,6 +721,21 @@ class Tensu:
 
             finally:
                 self.next_auth_check_time = Utils.current_milli_time() + (1000 * 10)
+
+    def change_sort(self):
+        list_items = []
+        for k in self.state["sort_orders"]:
+            d = Utils.direction_icon(not self.state["sort_orders"][k])
+            o = f"{k} {d}"
+            list_items.append(o)
+
+        ls = ListSelect(self.state, self.s, list_items, "Change Sort")
+        ls.draw()
+        sort_select = ls.select().split()[0]
+        self.state["sort"] = sort_select
+        self.state["sort_orders"][sort_select] = not self.state["sort_orders"][
+            sort_select
+        ]
 
     def set_namespace(self):
         """Display a prompt to choose from a list of Sensu namespaces."""
